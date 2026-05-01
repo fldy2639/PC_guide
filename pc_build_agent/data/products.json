@@ -1,0 +1,1737 @@
+[
+  {
+    "sku_id": "mock_cpu_001_intel_i5_13400",
+    "category": "处理器",
+    "name": "Intel i5-13400 10核16线程 处理器",
+    "price": 1482,
+    "jd_url": "https://item.jd.com/mock_cpu_001_intel_i5_13400.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_002_amd_r5_7500f",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 7500F 处理器 AM5",
+    "price": 1208,
+    "jd_url": "https://item.jd.com/mock_cpu_002_amd_r5_7500f.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_003_amd_r5_5600",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 5600 处理器 AM4",
+    "price": 726,
+    "jd_url": "https://item.jd.com/mock_cpu_003_amd_r5_5600.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_004_intel_i5_13490f",
+    "category": "处理器",
+    "name": "Intel i5-13490F 处理器 无核显 盒装",
+    "price": 1395,
+    "jd_url": "https://item.jd.com/mock_cpu_004_intel_i5_13490f.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_005_amd_r5_7600",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 7600 处理器 AM5",
+    "price": 1358,
+    "jd_url": "https://item.jd.com/mock_cpu_005_amd_r5_7600.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_006_amd_r7_5700x",
+    "category": "处理器",
+    "name": "AMD Ryzen 7 5700X 处理器 AM4",
+    "price": 1127,
+    "jd_url": "https://item.jd.com/mock_cpu_006_amd_r7_5700x.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_007_intel_i5_13600kf",
+    "category": "处理器",
+    "name": "Intel i5-13600KF 14核20线程 处理器",
+    "price": 1742,
+    "jd_url": "https://item.jd.com/mock_cpu_007_intel_i5_13600kf.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_008_amd_r7_7700",
+    "category": "处理器",
+    "name": "AMD Ryzen 7 7700 处理器 AM5 盒装",
+    "price": 1948,
+    "jd_url": "https://item.jd.com/mock_cpu_008_amd_r7_7700.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_009_amd_r5_5600",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 5600 处理器 AM4",
+    "price": 812,
+    "jd_url": "https://item.jd.com/mock_cpu_009_amd_r5_5600.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_010_intel_i5_14600kf",
+    "category": "处理器",
+    "name": "Intel i5-14600KF 处理器 盒装",
+    "price": 2085,
+    "jd_url": "https://item.jd.com/mock_cpu_010_intel_i5_14600kf.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_011_amd_r5_8600g",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 8600G 处理器 AM5 核显",
+    "price": 1626,
+    "jd_url": "https://item.jd.com/mock_cpu_011_amd_r5_8600g.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_012_amd_r7_5700x",
+    "category": "处理器",
+    "name": "AMD Ryzen 7 5700X 处理器 AM4",
+    "price": 1169,
+    "jd_url": "https://item.jd.com/mock_cpu_012_amd_r7_5700x.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_013_intel_i7_13700kf",
+    "category": "处理器",
+    "name": "Intel i7-13700KF 处理器 盒装",
+    "price": 2520,
+    "jd_url": "https://item.jd.com/mock_cpu_013_intel_i7_13700kf.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_014_amd_r5_7500f",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 7500F 处理器 AM5 盒装",
+    "price": 1059,
+    "jd_url": "https://item.jd.com/mock_cpu_014_amd_r5_7500f.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_015_amd_r5_5600",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 5600 处理器 AM4",
+    "price": 756,
+    "jd_url": "https://item.jd.com/mock_cpu_015_amd_r5_5600.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_016_intel_i7_14700kf",
+    "category": "处理器",
+    "name": "Intel i7-14700KF 处理器 盒装",
+    "price": 2774,
+    "jd_url": "https://item.jd.com/mock_cpu_016_intel_i7_14700kf.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_017_amd_r5_7600",
+    "category": "处理器",
+    "name": "AMD Ryzen 5 7600 处理器 AM5",
+    "price": 1305,
+    "jd_url": "https://item.jd.com/mock_cpu_017_amd_r5_7600.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_018_amd_r7_5700x",
+    "category": "处理器",
+    "name": "AMD Ryzen 7 5700X 处理器 AM4",
+    "price": 1116,
+    "jd_url": "https://item.jd.com/mock_cpu_018_amd_r7_5700x.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_019_intel_i5_13400",
+    "category": "处理器",
+    "name": "Intel i5-13400 10核16线程 处理器 盒装",
+    "price": 1407,
+    "jd_url": "https://item.jd.com/mock_cpu_019_intel_i5_13400.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cpu_020_amd_r7_7700",
+    "category": "处理器",
+    "name": "AMD Ryzen 7 7700 处理器 AM5 盒装",
+    "price": 1830,
+    "jd_url": "https://item.jd.com/mock_cpu_020_amd_r7_7700.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_001",
+    "category": "散热",
+    "name": "利民 PA120 SE 双塔风冷散热器",
+    "price": 207,
+    "jd_url": "https://item.jd.com/mock_cooler_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_002",
+    "category": "散热",
+    "name": "利民 Frozen Magic 240 白色一体式水冷",
+    "price": 314,
+    "jd_url": "https://item.jd.com/mock_cooler_002.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_003",
+    "category": "散热",
+    "name": "瓦尔基里 A360 白色 360一体式水冷",
+    "price": 447,
+    "jd_url": "https://item.jd.com/mock_cooler_003.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_004",
+    "category": "散热",
+    "name": "猫头鹰 NH-U12A 静音双塔风冷",
+    "price": 779,
+    "jd_url": "https://item.jd.com/mock_cooler_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_005",
+    "category": "散热",
+    "name": "利民 PA120 SE 双塔风冷散热器",
+    "price": 209,
+    "jd_url": "https://item.jd.com/mock_cooler_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_006",
+    "category": "散热",
+    "name": "利民 Frozen Magic 240 白色一体式水冷",
+    "price": 336,
+    "jd_url": "https://item.jd.com/mock_cooler_006.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_007",
+    "category": "散热",
+    "name": "瓦尔基里 A360 白色 360一体式水冷",
+    "price": 479,
+    "jd_url": "https://item.jd.com/mock_cooler_007.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_008",
+    "category": "散热",
+    "name": "猫头鹰 NH-U12A 静音双塔风冷",
+    "price": 848,
+    "jd_url": "https://item.jd.com/mock_cooler_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_009",
+    "category": "散热",
+    "name": "利民 PA120 SE 双塔风冷散热器",
+    "price": 185,
+    "jd_url": "https://item.jd.com/mock_cooler_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_010",
+    "category": "散热",
+    "name": "利民 Frozen Magic 240 白色一体式水冷",
+    "price": 372,
+    "jd_url": "https://item.jd.com/mock_cooler_010.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_011",
+    "category": "散热",
+    "name": "瓦尔基里 A360 白色 360一体式水冷",
+    "price": 423,
+    "jd_url": "https://item.jd.com/mock_cooler_011.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_012",
+    "category": "散热",
+    "name": "猫头鹰 NH-U12A 静音双塔风冷",
+    "price": 859,
+    "jd_url": "https://item.jd.com/mock_cooler_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_013",
+    "category": "散热",
+    "name": "利民 PA120 SE 双塔风冷散热器",
+    "price": 147,
+    "jd_url": "https://item.jd.com/mock_cooler_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_014",
+    "category": "散热",
+    "name": "利民 Frozen Magic 240 白色一体式水冷",
+    "price": 304,
+    "jd_url": "https://item.jd.com/mock_cooler_014.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_015",
+    "category": "散热",
+    "name": "瓦尔基里 A360 白色 360一体式水冷",
+    "price": 483,
+    "jd_url": "https://item.jd.com/mock_cooler_015.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_016",
+    "category": "散热",
+    "name": "猫头鹰 NH-U12A 静音双塔风冷",
+    "price": 798,
+    "jd_url": "https://item.jd.com/mock_cooler_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_017",
+    "category": "散热",
+    "name": "利民 PA120 SE 双塔风冷散热器",
+    "price": 176,
+    "jd_url": "https://item.jd.com/mock_cooler_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_cooler_018",
+    "category": "散热",
+    "name": "利民 Frozen Magic 240 白色一体式水冷",
+    "price": 309,
+    "jd_url": "https://item.jd.com/mock_cooler_018.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_019",
+    "category": "散热",
+    "name": "瓦尔基里 A360 白色 360一体式水冷",
+    "price": 428,
+    "jd_url": "https://item.jd.com/mock_cooler_019.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_cooler_020",
+    "category": "散热",
+    "name": "猫头鹰 NH-U12A 静音双塔风冷",
+    "price": 781,
+    "jd_url": "https://item.jd.com/mock_cooler_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mb_001",
+    "category": "主板",
+    "name": "华硕 PRIME B760M-K DDR4 主板",
+    "price": 886,
+    "jd_url": "https://item.jd.com/mock_mb_001.html",
+    "tags": [
+      "DDR4",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_002",
+    "category": "主板",
+    "name": "华硕 TUF B760M-PLUS WIFI II DDR5 主板",
+    "price": 1310,
+    "jd_url": "https://item.jd.com/mock_mb_002.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_003",
+    "category": "主板",
+    "name": "微星 MAG B760M MORTAR DDR5 主板",
+    "price": 1255,
+    "jd_url": "https://item.jd.com/mock_mb_003.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_004",
+    "category": "主板",
+    "name": "技嘉 B760M AORUS ELITE DDR5",
+    "price": 1182,
+    "jd_url": "https://item.jd.com/mock_mb_004.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_005",
+    "category": "主板",
+    "name": "华硕 ROG STRIX B650-A GAMING WIFI DDR5",
+    "price": 1680,
+    "jd_url": "https://item.jd.com/mock_mb_005.html",
+    "tags": [
+      "DDR5",
+      "B650"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_006",
+    "category": "主板",
+    "name": "微星 PRO B650M-P DDR5 主板",
+    "price": 933,
+    "jd_url": "https://item.jd.com/mock_mb_006.html",
+    "tags": [
+      "DDR5",
+      "B650"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_007",
+    "category": "主板",
+    "name": "华硕 TUF GAMING X670E-PLUS WIFI DDR5",
+    "price": 2429,
+    "jd_url": "https://item.jd.com/mock_mb_007.html",
+    "tags": [
+      "DDR5",
+      "X670"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_008",
+    "category": "主板",
+    "name": "技嘉 A620M DS3H DDR5",
+    "price": 692,
+    "jd_url": "https://item.jd.com/mock_mb_008.html",
+    "tags": [
+      "DDR5",
+      "A620"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_009",
+    "category": "主板",
+    "name": "微星 B550M MORTAR MAX WIFI DDR4",
+    "price": 887,
+    "jd_url": "https://item.jd.com/mock_mb_009.html",
+    "tags": [
+      "DDR4",
+      "B550"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_010",
+    "category": "主板",
+    "name": "华硕 TUF GAMING B550M-PLUS WIFI II DDR4",
+    "price": 907,
+    "jd_url": "https://item.jd.com/mock_mb_010.html",
+    "tags": [
+      "DDR4",
+      "B550"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_011",
+    "category": "主板",
+    "name": "华硕 PRIME B760M-K DDR4 主板",
+    "price": 832,
+    "jd_url": "https://item.jd.com/mock_mb_011.html",
+    "tags": [
+      "DDR4",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_012",
+    "category": "主板",
+    "name": "华硕 TUF B760M-PLUS WIFI II DDR5 主板",
+    "price": 1375,
+    "jd_url": "https://item.jd.com/mock_mb_012.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_013",
+    "category": "主板",
+    "name": "微星 MAG B760M MORTAR DDR5 主板",
+    "price": 1201,
+    "jd_url": "https://item.jd.com/mock_mb_013.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_014",
+    "category": "主板",
+    "name": "技嘉 B760M AORUS ELITE DDR5",
+    "price": 1130,
+    "jd_url": "https://item.jd.com/mock_mb_014.html",
+    "tags": [
+      "DDR5",
+      "B760"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_015",
+    "category": "主板",
+    "name": "华硕 ROG STRIX B650-A GAMING WIFI DDR5",
+    "price": 1757,
+    "jd_url": "https://item.jd.com/mock_mb_015.html",
+    "tags": [
+      "DDR5",
+      "B650"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_016",
+    "category": "主板",
+    "name": "微星 PRO B650M-P DDR5 主板",
+    "price": 936,
+    "jd_url": "https://item.jd.com/mock_mb_016.html",
+    "tags": [
+      "DDR5",
+      "B650"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_017",
+    "category": "主板",
+    "name": "华硕 TUF GAMING X670E-PLUS WIFI DDR5",
+    "price": 2408,
+    "jd_url": "https://item.jd.com/mock_mb_017.html",
+    "tags": [
+      "DDR5",
+      "X670"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_018",
+    "category": "主板",
+    "name": "技嘉 A620M DS3H DDR5",
+    "price": 695,
+    "jd_url": "https://item.jd.com/mock_mb_018.html",
+    "tags": [
+      "DDR5",
+      "A620"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_019",
+    "category": "主板",
+    "name": "微星 B550M MORTAR MAX WIFI DDR4",
+    "price": 902,
+    "jd_url": "https://item.jd.com/mock_mb_019.html",
+    "tags": [
+      "DDR4",
+      "B550"
+    ]
+  },
+  {
+    "sku_id": "mock_mb_020",
+    "category": "主板",
+    "name": "华硕 TUF GAMING B550M-PLUS WIFI II DDR4",
+    "price": 903,
+    "jd_url": "https://item.jd.com/mock_mb_020.html",
+    "tags": [
+      "DDR4",
+      "B550"
+    ]
+  },
+  {
+    "sku_id": "mock_gpu_001",
+    "category": "显卡",
+    "name": "无需独立显卡（核显办公方案）",
+    "price": 0,
+    "jd_url": "https://item.jd.com/mock_gpu_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_002",
+    "category": "显卡",
+    "name": "翔升 RTX 4060 8G 显卡",
+    "price": 2196,
+    "jd_url": "https://item.jd.com/mock_gpu_002.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_003",
+    "category": "显卡",
+    "name": "七彩虹 RTX 4060 Ti 8G Ultra",
+    "price": 2795,
+    "jd_url": "https://item.jd.com/mock_gpu_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_004",
+    "category": "显卡",
+    "name": "铭瑄 RTX 4070 12G 显卡",
+    "price": 4340,
+    "jd_url": "https://item.jd.com/mock_gpu_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_005",
+    "category": "显卡",
+    "name": "华硕 ATS RTX 4070 SUPER O12G 显卡",
+    "price": 4984,
+    "jd_url": "https://item.jd.com/mock_gpu_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_006",
+    "category": "显卡",
+    "name": "微星 RTX 4070 Ti SUPER 16G",
+    "price": 6316,
+    "jd_url": "https://item.jd.com/mock_gpu_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_007",
+    "category": "显卡",
+    "name": "影驰 RTX 4080 SUPER 16G",
+    "price": 8012,
+    "jd_url": "https://item.jd.com/mock_gpu_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_008",
+    "category": "显卡",
+    "name": "蓝宝石 RX 7700 XT 12G",
+    "price": 3087,
+    "jd_url": "https://item.jd.com/mock_gpu_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_009",
+    "category": "显卡",
+    "name": "蓝宝石 RX 7800 XT 16G",
+    "price": 3969,
+    "jd_url": "https://item.jd.com/mock_gpu_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_010",
+    "category": "显卡",
+    "name": "瀚铠 RX 7900 GRE",
+    "price": 4240,
+    "jd_url": "https://item.jd.com/mock_gpu_010.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_011",
+    "category": "显卡",
+    "name": "无需独立显卡（核显办公方案）",
+    "price": 0,
+    "jd_url": "https://item.jd.com/mock_gpu_011.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_012",
+    "category": "显卡",
+    "name": "翔升 RTX 4060 8G 显卡",
+    "price": 2187,
+    "jd_url": "https://item.jd.com/mock_gpu_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_013",
+    "category": "显卡",
+    "name": "七彩虹 RTX 4060 Ti 8G Ultra",
+    "price": 3034,
+    "jd_url": "https://item.jd.com/mock_gpu_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_014",
+    "category": "显卡",
+    "name": "铭瑄 RTX 4070 12G 显卡",
+    "price": 4381,
+    "jd_url": "https://item.jd.com/mock_gpu_014.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_015",
+    "category": "显卡",
+    "name": "华硕 ATS RTX 4070 SUPER O12G 显卡",
+    "price": 5013,
+    "jd_url": "https://item.jd.com/mock_gpu_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_016",
+    "category": "显卡",
+    "name": "微星 RTX 4070 Ti SUPER 16G",
+    "price": 6252,
+    "jd_url": "https://item.jd.com/mock_gpu_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_017",
+    "category": "显卡",
+    "name": "影驰 RTX 4080 SUPER 16G",
+    "price": 8114,
+    "jd_url": "https://item.jd.com/mock_gpu_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_018",
+    "category": "显卡",
+    "name": "蓝宝石 RX 7700 XT 12G",
+    "price": 3050,
+    "jd_url": "https://item.jd.com/mock_gpu_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_019",
+    "category": "显卡",
+    "name": "蓝宝石 RX 7800 XT 16G",
+    "price": 3805,
+    "jd_url": "https://item.jd.com/mock_gpu_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_gpu_020",
+    "category": "显卡",
+    "name": "瀚铠 RX 7900 GRE",
+    "price": 4366,
+    "jd_url": "https://item.jd.com/mock_gpu_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_001",
+    "category": "内存",
+    "name": "金士顿 FURY 16G DDR4 3200 马甲条",
+    "price": 326,
+    "jd_url": "https://item.jd.com/mock_ram_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_002",
+    "category": "内存",
+    "name": "威刚 XPG 32G DDR4 3600 套装",
+    "price": 618,
+    "jd_url": "https://item.jd.com/mock_ram_002.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_003",
+    "category": "内存",
+    "name": "光威 天策 32G DDR5 6000 马甲条",
+    "price": 691,
+    "jd_url": "https://item.jd.com/mock_ram_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_004",
+    "category": "内存",
+    "name": "芝奇 幻锋戟 32G DDR5 6400 RGB",
+    "price": 951,
+    "jd_url": "https://item.jd.com/mock_ram_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_005",
+    "category": "内存",
+    "name": "阿斯加特 女武神 32G DDR5 6800 白色RGB",
+    "price": 1015,
+    "jd_url": "https://item.jd.com/mock_ram_005.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_ram_006",
+    "category": "内存",
+    "name": "海盗船 复仇者 64G DDR5 6000",
+    "price": 1694,
+    "jd_url": "https://item.jd.com/mock_ram_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_007",
+    "category": "内存",
+    "name": "金士顿 FURY 16G DDR4 3200 马甲条",
+    "price": 389,
+    "jd_url": "https://item.jd.com/mock_ram_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_008",
+    "category": "内存",
+    "name": "威刚 XPG 32G DDR4 3600 套装",
+    "price": 635,
+    "jd_url": "https://item.jd.com/mock_ram_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_009",
+    "category": "内存",
+    "name": "光威 天策 32G DDR5 6000 马甲条",
+    "price": 612,
+    "jd_url": "https://item.jd.com/mock_ram_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_010",
+    "category": "内存",
+    "name": "芝奇 幻锋戟 32G DDR5 6400 RGB",
+    "price": 871,
+    "jd_url": "https://item.jd.com/mock_ram_010.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_011",
+    "category": "内存",
+    "name": "阿斯加特 女武神 32G DDR5 6800 白色RGB",
+    "price": 987,
+    "jd_url": "https://item.jd.com/mock_ram_011.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_ram_012",
+    "category": "内存",
+    "name": "海盗船 复仇者 64G DDR5 6000",
+    "price": 1698,
+    "jd_url": "https://item.jd.com/mock_ram_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_013",
+    "category": "内存",
+    "name": "金士顿 FURY 16G DDR4 3200 马甲条",
+    "price": 299,
+    "jd_url": "https://item.jd.com/mock_ram_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_014",
+    "category": "内存",
+    "name": "威刚 XPG 32G DDR4 3600 套装",
+    "price": 617,
+    "jd_url": "https://item.jd.com/mock_ram_014.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_015",
+    "category": "内存",
+    "name": "光威 天策 32G DDR5 6000 马甲条",
+    "price": 605,
+    "jd_url": "https://item.jd.com/mock_ram_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_016",
+    "category": "内存",
+    "name": "芝奇 幻锋戟 32G DDR5 6400 RGB",
+    "price": 957,
+    "jd_url": "https://item.jd.com/mock_ram_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_017",
+    "category": "内存",
+    "name": "阿斯加特 女武神 32G DDR5 6800 白色RGB",
+    "price": 1056,
+    "jd_url": "https://item.jd.com/mock_ram_017.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_ram_018",
+    "category": "内存",
+    "name": "海盗船 复仇者 64G DDR5 6000",
+    "price": 1778,
+    "jd_url": "https://item.jd.com/mock_ram_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_019",
+    "category": "内存",
+    "name": "金士顿 FURY 16G DDR4 3200 马甲条",
+    "price": 323,
+    "jd_url": "https://item.jd.com/mock_ram_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ram_020",
+    "category": "内存",
+    "name": "威刚 XPG 32G DDR4 3600 套装",
+    "price": 511,
+    "jd_url": "https://item.jd.com/mock_ram_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_001",
+    "category": "硬盘",
+    "name": "铠侠 RC20 1TB NVMe SSD",
+    "price": 451,
+    "jd_url": "https://item.jd.com/mock_ssd_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_002",
+    "category": "硬盘",
+    "name": "西部数据 SN580 1TB PCIe4.0",
+    "price": 516,
+    "jd_url": "https://item.jd.com/mock_ssd_002.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_003",
+    "category": "硬盘",
+    "name": "三星 990 PRO 1TB PCIe4.0",
+    "price": 678,
+    "jd_url": "https://item.jd.com/mock_ssd_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_004",
+    "category": "硬盘",
+    "name": "致态 TiPlus7100 2TB PCIe4.0",
+    "price": 951,
+    "jd_url": "https://item.jd.com/mock_ssd_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_005",
+    "category": "硬盘",
+    "name": "三星 990 PRO 2TB PCIe4.0",
+    "price": 1332,
+    "jd_url": "https://item.jd.com/mock_ssd_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_006",
+    "category": "硬盘",
+    "name": "SOLIDIGM P44 Pro 2TB",
+    "price": 1160,
+    "jd_url": "https://item.jd.com/mock_ssd_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_007",
+    "category": "硬盘",
+    "name": "铠侠 RC20 1TB NVMe SSD",
+    "price": 398,
+    "jd_url": "https://item.jd.com/mock_ssd_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_008",
+    "category": "硬盘",
+    "name": "西部数据 SN580 1TB PCIe4.0",
+    "price": 522,
+    "jd_url": "https://item.jd.com/mock_ssd_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_009",
+    "category": "硬盘",
+    "name": "三星 990 PRO 1TB PCIe4.0",
+    "price": 746,
+    "jd_url": "https://item.jd.com/mock_ssd_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_010",
+    "category": "硬盘",
+    "name": "致态 TiPlus7100 2TB PCIe4.0",
+    "price": 907,
+    "jd_url": "https://item.jd.com/mock_ssd_010.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_011",
+    "category": "硬盘",
+    "name": "三星 990 PRO 2TB PCIe4.0",
+    "price": 1278,
+    "jd_url": "https://item.jd.com/mock_ssd_011.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_012",
+    "category": "硬盘",
+    "name": "SOLIDIGM P44 Pro 2TB",
+    "price": 1101,
+    "jd_url": "https://item.jd.com/mock_ssd_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_013",
+    "category": "硬盘",
+    "name": "铠侠 RC20 1TB NVMe SSD",
+    "price": 419,
+    "jd_url": "https://item.jd.com/mock_ssd_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_014",
+    "category": "硬盘",
+    "name": "西部数据 SN580 1TB PCIe4.0",
+    "price": 444,
+    "jd_url": "https://item.jd.com/mock_ssd_014.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_015",
+    "category": "硬盘",
+    "name": "三星 990 PRO 1TB PCIe4.0",
+    "price": 722,
+    "jd_url": "https://item.jd.com/mock_ssd_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_016",
+    "category": "硬盘",
+    "name": "致态 TiPlus7100 2TB PCIe4.0",
+    "price": 864,
+    "jd_url": "https://item.jd.com/mock_ssd_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_017",
+    "category": "硬盘",
+    "name": "三星 990 PRO 2TB PCIe4.0",
+    "price": 1356,
+    "jd_url": "https://item.jd.com/mock_ssd_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_018",
+    "category": "硬盘",
+    "name": "SOLIDIGM P44 Pro 2TB",
+    "price": 1156,
+    "jd_url": "https://item.jd.com/mock_ssd_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_019",
+    "category": "硬盘",
+    "name": "铠侠 RC20 1TB NVMe SSD",
+    "price": 397,
+    "jd_url": "https://item.jd.com/mock_ssd_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_ssd_020",
+    "category": "硬盘",
+    "name": "西部数据 SN580 1TB PCIe4.0",
+    "price": 488,
+    "jd_url": "https://item.jd.com/mock_ssd_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_001",
+    "category": "机箱",
+    "name": "先马 平头哥 M2 M-ATX 机箱",
+    "price": 146,
+    "jd_url": "https://item.jd.com/mock_case_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_002",
+    "category": "机箱",
+    "name": "爱国者 YOGO M2 PRO 白色 MATX",
+    "price": 278,
+    "jd_url": "https://item.jd.com/mock_case_002.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_003",
+    "category": "机箱",
+    "name": "联力 LANCOOL 216 RGB ATX 机箱",
+    "price": 587,
+    "jd_url": "https://item.jd.com/mock_case_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_004",
+    "category": "机箱",
+    "name": "乔思伯 D300 白色 MATX 海景房",
+    "price": 514,
+    "jd_url": "https://item.jd.com/mock_case_004.html",
+    "tags": [
+      "海景房",
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_005",
+    "category": "机箱",
+    "name": "航嘉 S980 全景白色海景房 ATX 支持360水冷",
+    "price": 362,
+    "jd_url": "https://item.jd.com/mock_case_005.html",
+    "tags": [
+      "海景房",
+      "白色",
+      "360冷排"
+    ]
+  },
+  {
+    "sku_id": "mock_case_006",
+    "category": "机箱",
+    "name": "酷冷至尊 NR400 MATX 机箱",
+    "price": 438,
+    "jd_url": "https://item.jd.com/mock_case_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_007",
+    "category": "机箱",
+    "name": "先马 平头哥 M2 M-ATX 机箱",
+    "price": 201,
+    "jd_url": "https://item.jd.com/mock_case_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_008",
+    "category": "机箱",
+    "name": "爱国者 YOGO M2 PRO 白色 MATX",
+    "price": 239,
+    "jd_url": "https://item.jd.com/mock_case_008.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_009",
+    "category": "机箱",
+    "name": "联力 LANCOOL 216 RGB ATX 机箱",
+    "price": 593,
+    "jd_url": "https://item.jd.com/mock_case_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_010",
+    "category": "机箱",
+    "name": "乔思伯 D300 白色 MATX 海景房",
+    "price": 481,
+    "jd_url": "https://item.jd.com/mock_case_010.html",
+    "tags": [
+      "海景房",
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_011",
+    "category": "机箱",
+    "name": "航嘉 S980 全景白色海景房 ATX 支持360水冷",
+    "price": 344,
+    "jd_url": "https://item.jd.com/mock_case_011.html",
+    "tags": [
+      "海景房",
+      "白色",
+      "360冷排"
+    ]
+  },
+  {
+    "sku_id": "mock_case_012",
+    "category": "机箱",
+    "name": "酷冷至尊 NR400 MATX 机箱",
+    "price": 443,
+    "jd_url": "https://item.jd.com/mock_case_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_013",
+    "category": "机箱",
+    "name": "先马 平头哥 M2 M-ATX 机箱",
+    "price": 191,
+    "jd_url": "https://item.jd.com/mock_case_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_014",
+    "category": "机箱",
+    "name": "爱国者 YOGO M2 PRO 白色 MATX",
+    "price": 214,
+    "jd_url": "https://item.jd.com/mock_case_014.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_015",
+    "category": "机箱",
+    "name": "联力 LANCOOL 216 RGB ATX 机箱",
+    "price": 650,
+    "jd_url": "https://item.jd.com/mock_case_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_016",
+    "category": "机箱",
+    "name": "乔思伯 D300 白色 MATX 海景房",
+    "price": 475,
+    "jd_url": "https://item.jd.com/mock_case_016.html",
+    "tags": [
+      "海景房",
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_case_017",
+    "category": "机箱",
+    "name": "航嘉 S980 全景白色海景房 ATX 支持360水冷",
+    "price": 386,
+    "jd_url": "https://item.jd.com/mock_case_017.html",
+    "tags": [
+      "海景房",
+      "白色",
+      "360冷排"
+    ]
+  },
+  {
+    "sku_id": "mock_case_018",
+    "category": "机箱",
+    "name": "酷冷至尊 NR400 MATX 机箱",
+    "price": 376,
+    "jd_url": "https://item.jd.com/mock_case_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_019",
+    "category": "机箱",
+    "name": "先马 平头哥 M2 M-ATX 机箱",
+    "price": 138,
+    "jd_url": "https://item.jd.com/mock_case_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_case_020",
+    "category": "机箱",
+    "name": "爱国者 YOGO M2 PRO 白色 MATX",
+    "price": 260,
+    "jd_url": "https://item.jd.com/mock_case_020.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_psu_001",
+    "category": "电源",
+    "name": "航嘉 WD650 额定650W 铜牌电源",
+    "price": 328,
+    "jd_url": "https://item.jd.com/mock_psu_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_002",
+    "category": "电源",
+    "name": "鑫谷 GM750 金牌全模组 750W",
+    "price": 449,
+    "jd_url": "https://item.jd.com/mock_psu_002.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_003",
+    "category": "电源",
+    "name": "海韵 FOCUS GX850 金牌全模组",
+    "price": 926,
+    "jd_url": "https://item.jd.com/mock_psu_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_004",
+    "category": "电源",
+    "name": "振华 LEADEX VII 1000W 金牌全模组",
+    "price": 1299,
+    "jd_url": "https://item.jd.com/mock_psu_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_005",
+    "category": "电源",
+    "name": "长城 X7 750W 金牌全模组",
+    "price": 471,
+    "jd_url": "https://item.jd.com/mock_psu_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_006",
+    "category": "电源",
+    "name": "安钛克 NE850 金牌全模组",
+    "price": 639,
+    "jd_url": "https://item.jd.com/mock_psu_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_007",
+    "category": "电源",
+    "name": "航嘉 WD650 额定650W 铜牌电源",
+    "price": 299,
+    "jd_url": "https://item.jd.com/mock_psu_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_008",
+    "category": "电源",
+    "name": "鑫谷 GM750 金牌全模组 750W",
+    "price": 512,
+    "jd_url": "https://item.jd.com/mock_psu_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_009",
+    "category": "电源",
+    "name": "海韵 FOCUS GX850 金牌全模组",
+    "price": 981,
+    "jd_url": "https://item.jd.com/mock_psu_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_010",
+    "category": "电源",
+    "name": "振华 LEADEX VII 1000W 金牌全模组",
+    "price": 1277,
+    "jd_url": "https://item.jd.com/mock_psu_010.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_011",
+    "category": "电源",
+    "name": "长城 X7 750W 金牌全模组",
+    "price": 496,
+    "jd_url": "https://item.jd.com/mock_psu_011.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_012",
+    "category": "电源",
+    "name": "安钛克 NE850 金牌全模组",
+    "price": 697,
+    "jd_url": "https://item.jd.com/mock_psu_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_013",
+    "category": "电源",
+    "name": "航嘉 WD650 额定650W 铜牌电源",
+    "price": 387,
+    "jd_url": "https://item.jd.com/mock_psu_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_014",
+    "category": "电源",
+    "name": "鑫谷 GM750 金牌全模组 750W",
+    "price": 435,
+    "jd_url": "https://item.jd.com/mock_psu_014.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_015",
+    "category": "电源",
+    "name": "海韵 FOCUS GX850 金牌全模组",
+    "price": 935,
+    "jd_url": "https://item.jd.com/mock_psu_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_016",
+    "category": "电源",
+    "name": "振华 LEADEX VII 1000W 金牌全模组",
+    "price": 1353,
+    "jd_url": "https://item.jd.com/mock_psu_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_017",
+    "category": "电源",
+    "name": "长城 X7 750W 金牌全模组",
+    "price": 459,
+    "jd_url": "https://item.jd.com/mock_psu_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_018",
+    "category": "电源",
+    "name": "安钛克 NE850 金牌全模组",
+    "price": 699,
+    "jd_url": "https://item.jd.com/mock_psu_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_019",
+    "category": "电源",
+    "name": "航嘉 WD650 额定650W 铜牌电源",
+    "price": 310,
+    "jd_url": "https://item.jd.com/mock_psu_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_psu_020",
+    "category": "电源",
+    "name": "鑫谷 GM750 金牌全模组 750W",
+    "price": 452,
+    "jd_url": "https://item.jd.com/mock_psu_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_001",
+    "category": "风扇",
+    "name": "利民 TL-C12C 无光机箱风扇 三联包",
+    "price": 92,
+    "jd_url": "https://item.jd.com/mock_fan_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_002",
+    "category": "风扇",
+    "name": "棱镜4 PRO 白色ARGB风扇 三联包",
+    "price": 127,
+    "jd_url": "https://item.jd.com/mock_fan_002.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_003",
+    "category": "风扇",
+    "name": "联力 AL120 V2 积木风扇 白色三联包",
+    "price": 616,
+    "jd_url": "https://item.jd.com/mock_fan_003.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_004",
+    "category": "风扇",
+    "name": "酷冷至尊 MF120 HALO ARGB 三联包",
+    "price": 252,
+    "jd_url": "https://item.jd.com/mock_fan_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_005",
+    "category": "风扇",
+    "name": "利民 TL-C12C 无光机箱风扇 三联包",
+    "price": 93,
+    "jd_url": "https://item.jd.com/mock_fan_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_006",
+    "category": "风扇",
+    "name": "棱镜4 PRO 白色ARGB风扇 三联包",
+    "price": 133,
+    "jd_url": "https://item.jd.com/mock_fan_006.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_007",
+    "category": "风扇",
+    "name": "联力 AL120 V2 积木风扇 白色三联包",
+    "price": 601,
+    "jd_url": "https://item.jd.com/mock_fan_007.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_008",
+    "category": "风扇",
+    "name": "酷冷至尊 MF120 HALO ARGB 三联包",
+    "price": 284,
+    "jd_url": "https://item.jd.com/mock_fan_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_009",
+    "category": "风扇",
+    "name": "利民 TL-C12C 无光机箱风扇 三联包",
+    "price": 78,
+    "jd_url": "https://item.jd.com/mock_fan_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_010",
+    "category": "风扇",
+    "name": "棱镜4 PRO 白色ARGB风扇 三联包",
+    "price": 114,
+    "jd_url": "https://item.jd.com/mock_fan_010.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_011",
+    "category": "风扇",
+    "name": "联力 AL120 V2 积木风扇 白色三联包",
+    "price": 631,
+    "jd_url": "https://item.jd.com/mock_fan_011.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_012",
+    "category": "风扇",
+    "name": "酷冷至尊 MF120 HALO ARGB 三联包",
+    "price": 280,
+    "jd_url": "https://item.jd.com/mock_fan_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_013",
+    "category": "风扇",
+    "name": "利民 TL-C12C 无光机箱风扇 三联包",
+    "price": 82,
+    "jd_url": "https://item.jd.com/mock_fan_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_014",
+    "category": "风扇",
+    "name": "棱镜4 PRO 白色ARGB风扇 三联包",
+    "price": 117,
+    "jd_url": "https://item.jd.com/mock_fan_014.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_015",
+    "category": "风扇",
+    "name": "联力 AL120 V2 积木风扇 白色三联包",
+    "price": 622,
+    "jd_url": "https://item.jd.com/mock_fan_015.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_016",
+    "category": "风扇",
+    "name": "酷冷至尊 MF120 HALO ARGB 三联包",
+    "price": 267,
+    "jd_url": "https://item.jd.com/mock_fan_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_017",
+    "category": "风扇",
+    "name": "利民 TL-C12C 无光机箱风扇 三联包",
+    "price": 66,
+    "jd_url": "https://item.jd.com/mock_fan_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_fan_018",
+    "category": "风扇",
+    "name": "棱镜4 PRO 白色ARGB风扇 三联包",
+    "price": 104,
+    "jd_url": "https://item.jd.com/mock_fan_018.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_019",
+    "category": "风扇",
+    "name": "联力 AL120 V2 积木风扇 白色三联包",
+    "price": 603,
+    "jd_url": "https://item.jd.com/mock_fan_019.html",
+    "tags": [
+      "白色"
+    ]
+  },
+  {
+    "sku_id": "mock_fan_020",
+    "category": "风扇",
+    "name": "酷冷至尊 MF120 HALO ARGB 三联包",
+    "price": 243,
+    "jd_url": "https://item.jd.com/mock_fan_020.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_001",
+    "category": "显示器",
+    "name": "红米 27英寸 2K 165Hz IPS 显示器",
+    "price": 1105,
+    "jd_url": "https://item.jd.com/mock_mon_001.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_002",
+    "category": "显示器",
+    "name": "HKC IG27Q 27英寸 2K 170Hz FastIPS",
+    "price": 924,
+    "jd_url": "https://item.jd.com/mock_mon_002.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_003",
+    "category": "显示器",
+    "name": "联想 R27qe 27英寸 2K 180Hz",
+    "price": 1269,
+    "jd_url": "https://item.jd.com/mock_mon_003.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_004",
+    "category": "显示器",
+    "name": "LG 27GP850 27英寸 2K NanoIPS 180Hz",
+    "price": 2260,
+    "jd_url": "https://item.jd.com/mock_mon_004.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_005",
+    "category": "显示器",
+    "name": "三星 G8 34英寸 带鱼屏 QD-OLED",
+    "price": 8977,
+    "jd_url": "https://item.jd.com/mock_mon_005.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_006",
+    "category": "显示器",
+    "name": "红米 27英寸 2K 165Hz IPS 显示器",
+    "price": 1169,
+    "jd_url": "https://item.jd.com/mock_mon_006.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_007",
+    "category": "显示器",
+    "name": "HKC IG27Q 27英寸 2K 170Hz FastIPS",
+    "price": 975,
+    "jd_url": "https://item.jd.com/mock_mon_007.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_008",
+    "category": "显示器",
+    "name": "联想 R27qe 27英寸 2K 180Hz",
+    "price": 1120,
+    "jd_url": "https://item.jd.com/mock_mon_008.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_009",
+    "category": "显示器",
+    "name": "LG 27GP850 27英寸 2K NanoIPS 180Hz",
+    "price": 2137,
+    "jd_url": "https://item.jd.com/mock_mon_009.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_010",
+    "category": "显示器",
+    "name": "三星 G8 34英寸 带鱼屏 QD-OLED",
+    "price": 9100,
+    "jd_url": "https://item.jd.com/mock_mon_010.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_011",
+    "category": "显示器",
+    "name": "红米 27英寸 2K 165Hz IPS 显示器",
+    "price": 1180,
+    "jd_url": "https://item.jd.com/mock_mon_011.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_012",
+    "category": "显示器",
+    "name": "HKC IG27Q 27英寸 2K 170Hz FastIPS",
+    "price": 934,
+    "jd_url": "https://item.jd.com/mock_mon_012.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_013",
+    "category": "显示器",
+    "name": "联想 R27qe 27英寸 2K 180Hz",
+    "price": 1177,
+    "jd_url": "https://item.jd.com/mock_mon_013.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_014",
+    "category": "显示器",
+    "name": "LG 27GP850 27英寸 2K NanoIPS 180Hz",
+    "price": 2136,
+    "jd_url": "https://item.jd.com/mock_mon_014.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_015",
+    "category": "显示器",
+    "name": "三星 G8 34英寸 带鱼屏 QD-OLED",
+    "price": 8927,
+    "jd_url": "https://item.jd.com/mock_mon_015.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_016",
+    "category": "显示器",
+    "name": "红米 27英寸 2K 165Hz IPS 显示器",
+    "price": 1239,
+    "jd_url": "https://item.jd.com/mock_mon_016.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_017",
+    "category": "显示器",
+    "name": "HKC IG27Q 27英寸 2K 170Hz FastIPS",
+    "price": 1003,
+    "jd_url": "https://item.jd.com/mock_mon_017.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_018",
+    "category": "显示器",
+    "name": "联想 R27qe 27英寸 2K 180Hz",
+    "price": 1137,
+    "jd_url": "https://item.jd.com/mock_mon_018.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_019",
+    "category": "显示器",
+    "name": "LG 27GP850 27英寸 2K NanoIPS 180Hz",
+    "price": 2250,
+    "jd_url": "https://item.jd.com/mock_mon_019.html",
+    "tags": []
+  },
+  {
+    "sku_id": "mock_mon_020",
+    "category": "显示器",
+    "name": "三星 G8 34英寸 带鱼屏 QD-OLED",
+    "price": 8979,
+    "jd_url": "https://item.jd.com/mock_mon_020.html",
+    "tags": []
+  }
+]

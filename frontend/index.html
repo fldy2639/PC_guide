@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>京东装机导购助手</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="jd-header">
+      <div class="jd-header-inner">
+        <div class="jd-logo">
+          京东装机导购 <span class="sub">智能选配 · 兼容校验</span>
+        </div>
+        <nav class="jd-header-links">
+          <a href="/docs" target="_blank" rel="noopener">API 文档</a>
+          <a href="/health" target="_blank" rel="noopener">服务状态</a>
+        </nav>
+      </div>
+    </header>
+
+    <div class="jd-subbar">
+      <div class="jd-subbar-inner">
+        当前为 <strong>V1 演示</strong>：商品与价格为 Mock 参考，下单请以京东商详页为准。
+      </div>
+    </div>
+
+    <main class="main-wrap">
+      <div class="grid grid-2">
+        <section class="card">
+          <div class="card-hd">
+            <h2>说说你的需求</h2>
+            <span class="badge">自然语言</span>
+          </div>
+          <div class="card-bd">
+            <form id="form-main">
+              <label class="lbl" for="user-query">预算 / 用途 / 外观 / 是否要显示器 / 指定显卡型号等</label>
+              <textarea
+                id="user-query"
+                class="jd-input"
+                placeholder="示例：我想配一台 6000-8000 元的主机玩 3A，白色海景房，不要显示器。"
+              ></textarea>
+              <p class="hint">
+                会话 ID：<code id="session-display">（新会话）</code>
+                — 追问时会自动带上上下文。
+              </p>
+              <label class="debug-toggle">
+                <input type="checkbox" id="chk-debug-llm" />
+                <span>调试：展示模型调用轨迹（含思维链字段 <code>reasoning_content</code>，若上游返回）</span>
+              </label>
+              <div class="row-actions">
+                <button type="submit" class="btn btn-primary" id="btn-submit">生成装机方案</button>
+                <button type="button" class="btn btn-ghost" id="btn-clear-session">清空会话</button>
+              </div>
+              <div class="loader-wrap" id="loader">
+                <span class="jd-spinner" aria-hidden="true"></span>
+                <span>正在理解需求并选配配件，请稍候…</span>
+              </div>
+            </form>
+
+            <div id="clarify-wrap" class="clarify-box hidden">
+              <div id="clarify-container"></div>
+            </div>
+            <div id="debug-host" class="debug-host hidden"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-hd">
+            <h2>推荐方案</h2>
+            <span class="badge">Top 召回 + 规则校验</span>
+          </div>
+          <div class="card-bd">
+            <div id="result-wrap" class="result-section hidden">
+              <div id="result-inner"></div>
+            </div>
+            <p id="placeholder-hint" class="hint" style="margin: 0">
+              提交需求后，这里会展示配件清单、参考总价、兼容性与风险提示。
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <p class="footer-note">
+      © 演示界面 · 样式参考京东红白配色，非京东官方页面。
+    </p>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var rw = document.getElementById("result-wrap");
+        var ph = document.getElementById("placeholder-hint");
+        if (!rw || !ph) return;
+        var obs = new MutationObserver(function () {
+          ph.style.display = rw.classList.contains("hidden") ? "block" : "none";
+        });
+        obs.observe(rw, { attributes: true, attributeFilter: ["class"] });
+      });
+    </script>
+  </body>
+</html>
