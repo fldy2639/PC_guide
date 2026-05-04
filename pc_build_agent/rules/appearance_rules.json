@@ -1,0 +1,365 @@
+[
+  {
+    "rule_id": "case_size_itx_compact",
+    "dimension": "case_size",
+    "level_1": "机箱尺寸",
+    "level_2": "ITX小主机",
+    "normalized_value": "itx_compact",
+    "keywords": ["ITX", "小主机", "迷你主机", "越小越好", "很小", "便携", "桌面小主机", "不占地方"],
+    "effects": {
+      "case_size": "itx_compact",
+      "preferred_form_factor": ["Mini-ITX"],
+      "compatibility_constraints": [
+        "需要校验显卡长度",
+        "需要校验CPU散热器高度",
+        "可能需要SFX电源",
+        "小机箱会提高装机兼容性和散热约束"
+      ]
+    },
+    "description": "用户明确偏向极小体积主机，优先考虑Mini-ITX方案。"
+  },
+  {
+    "rule_id": "case_size_compact_m_atx",
+    "dimension": "case_size",
+    "level_1": "机箱尺寸",
+    "level_2": "紧凑M-ATX",
+    "normalized_value": "compact_m_atx",
+    "keywords": ["小一点", "不要太大", "宿舍", "桌面放", "空间小", "紧凑", "正常小主机"],
+    "effects": {
+      "case_size": "compact_m_atx",
+      "preferred_form_factor": ["M-ATX", "Mini-ITX"],
+      "compatibility_constraints": [
+        "优先考虑M-ATX紧凑机箱",
+        "需要校验显卡长度",
+        "需要校验散热器高度",
+        "适合宿舍或桌面空间有限场景"
+      ]
+    },
+    "description": "用户希望主机不要太大，但未必要求极限ITX，M-ATX通常是更均衡选择。"
+  },
+  {
+    "rule_id": "case_size_standard_atx",
+    "dimension": "case_size",
+    "level_1": "机箱尺寸",
+    "level_2": "标准ATX",
+    "normalized_value": "standard_atx",
+    "keywords": ["普通大小", "正常机箱", "常规主机", "标准机箱"],
+    "effects": {
+      "case_size": "standard_atx",
+      "preferred_form_factor": ["ATX", "M-ATX", "Mini-ITX"],
+      "compatibility_constraints": [
+        "标准ATX机箱兼容性较好",
+        "显卡、散热器和电源选择空间较大"
+      ]
+    },
+    "description": "用户接受常规大小主机，后续可以优先选择兼容性较好的中塔机箱。"
+  },
+  {
+    "rule_id": "case_size_large_atx",
+    "dimension": "case_size",
+    "level_1": "机箱尺寸",
+    "level_2": "大机箱",
+    "normalized_value": "large_atx",
+    "keywords": ["大机箱", "大一点", "散热好", "扩展强", "以后升级", "空间大"],
+    "effects": {
+      "case_size": "large_atx",
+      "preferred_form_factor": ["ATX", "E-ATX"],
+      "compatibility_constraints": [
+        "可优先考虑高兼容性中塔或全塔机箱",
+        "适合高性能显卡、大型风冷或水冷",
+        "机箱预算和桌面空间占用可能增加"
+      ]
+    },
+    "description": "用户偏向大空间、高扩展或强散热机箱。"
+  },
+  {
+    "rule_id": "case_style_panoramic",
+    "dimension": "case_style",
+    "level_1": "主机样式",
+    "level_2": "海景房 / 全景展示",
+    "normalized_value": "panoramic",
+    "keywords": ["海景房", "鱼缸", "全景玻璃", "侧透展示", "展示感", "透明主机"],
+    "effects": {
+      "case_style": "panoramic",
+      "material": "tempered_glass",
+      "side_panel": "tempered_glass",
+      "compatibility_constraints": [
+        "海景房机箱通常重视展示效果",
+        "需要校验主板尺寸、显卡长度和风扇位",
+        "如果用户同时要求小机箱，需要在体积和展示感之间折中"
+      ]
+    },
+    "description": "海景房类表达通常表示用户重视展示感和玻璃侧透。"
+  },
+  {
+    "rule_id": "case_style_dual_chamber",
+    "dimension": "case_style",
+    "level_1": "主机样式",
+    "level_2": "双仓 / 走线隐藏",
+    "normalized_value": "dual_chamber",
+    "keywords": ["双仓", "分仓", "背插", "走线干净", "隐藏线材", "背线"],
+    "effects": {
+      "case_style": "dual_chamber",
+      "compatibility_constraints": [
+        "需要校验主板和机箱是否支持背插或分仓结构",
+        "双仓机箱通常体积不一定小"
+      ]
+    },
+    "description": "用户关注走线整洁和展示效果。"
+  },
+  {
+    "rule_id": "case_style_minimalist",
+    "dimension": "case_style",
+    "level_1": "主机样式",
+    "level_2": "简约低调",
+    "normalized_value": "minimalist",
+    "keywords": ["简约", "低调", "商务", "干净", "素一点", "不要花哨"],
+    "effects": {
+      "case_style": "minimalist",
+      "compatibility_constraints": [
+        "优先选择无明显灯光或低调外观机箱",
+        "避免过度电竞风外观"
+      ],
+      "constraints_for_selection_agent": {
+        "avoid_features": ["strong_rgb", "aggressive_gaming_style"],
+        "rgb_policy_hint": "prefer_no_rgb_or_low_rgb"
+      },
+      "conflicts_or_warnings": [
+        "如果用户同时要求电竞炫酷风格，需确认是否接受明显灯光元素"
+      ]
+    },
+    "description": "用户偏向低调、商务、简洁的主机外观。"
+  },
+  {
+    "rule_id": "case_style_gaming",
+    "dimension": "case_style",
+    "level_1": "主机样式",
+    "level_2": "电竞炫酷",
+    "normalized_value": "gaming",
+    "keywords": ["电竞", "炫酷", "战斗感", "酷一点", "电竞风"],
+    "effects": {
+      "case_style": "gaming",
+      "rgb": "rgb",
+      "compatibility_constraints": [
+        "可考虑侧透、RGB风扇和电竞风格机箱",
+        "需要结合用户是否接受灯光"
+      ]
+    },
+    "description": "用户偏向电竞风格和视觉冲击。"
+  },
+  {
+    "rule_id": "case_style_airflow_mesh",
+    "dimension": "case_style",
+    "level_1": "主机样式",
+    "level_2": "风道散热",
+    "normalized_value": "airflow_mesh",
+    "keywords": ["网孔", "网面", "散热好", "风道好", "高风量", "前面板透气"],
+    "effects": {
+      "case_style": "airflow_mesh",
+      "material": "mesh",
+      "compatibility_constraints": [
+        "优先选择风道好的网孔机箱",
+        "高风量可能和静音需求存在冲突，需要平衡"
+      ]
+    },
+    "description": "用户偏向散热和风道表现。"
+  },
+  {
+    "rule_id": "color_white",
+    "dimension": "color",
+    "level_1": "颜色",
+    "level_2": "白色",
+    "normalized_value": "white",
+    "keywords": ["白色", "全白", "白色主机", "白色海景房", "白色桌搭"],
+    "effects": {
+      "color": "white",
+      "compatibility_constraints": [
+        "需要判断用户是否要求全套白色配件",
+        "白色配件可能存在价格溢价或可选范围减少"
+      ]
+    },
+    "description": "用户偏向白色外观。"
+  },
+  {
+    "rule_id": "color_black",
+    "dimension": "color",
+    "level_1": "颜色",
+    "level_2": "黑色",
+    "normalized_value": "black",
+    "keywords": ["黑色", "全黑", "黑武士", "黑色低调"],
+    "effects": {
+      "color": "black"
+    },
+    "description": "用户偏向黑色或低调深色外观。"
+  },
+  {
+    "rule_id": "color_silver_gray",
+    "dimension": "color",
+    "level_1": "颜色",
+    "level_2": "银色 / 灰色",
+    "normalized_value": "silver_or_gray",
+    "keywords": ["银色", "灰色", "深灰", "浅灰", "太空灰", "金属银"],
+    "effects": {
+      "color": "silver_or_gray",
+      "material": "metal"
+    },
+    "description": "用户偏向银灰或金属质感。"
+  },
+  {
+    "rule_id": "color_no_preference",
+    "dimension": "color",
+    "level_1": "颜色",
+    "level_2": "颜色无所谓",
+    "normalized_value": "no_preference",
+    "keywords": ["颜色无所谓", "颜色随便", "颜色都行", "都可以"],
+    "effects": {
+      "color": "no_preference"
+    },
+    "description": "颜色不是用户核心约束。"
+  },
+  {
+    "rule_id": "material_tempered_glass",
+    "dimension": "material",
+    "level_1": "材质",
+    "level_2": "钢化玻璃",
+    "normalized_value": "tempered_glass",
+    "keywords": ["玻璃", "钢化玻璃", "透明玻璃", "侧透", "全景玻璃"],
+    "effects": {
+      "material": "tempered_glass",
+      "side_panel": "tempered_glass"
+    },
+    "description": "用户偏向玻璃侧透或展示效果。"
+  },
+  {
+    "rule_id": "material_metal",
+    "dimension": "material",
+    "level_1": "材质",
+    "level_2": "金属",
+    "normalized_value": "metal",
+    "keywords": ["金属", "金属感", "铁壳", "钢板", "硬朗"],
+    "effects": {
+      "material": "metal"
+    },
+    "description": "用户偏向金属质感和稳重外观。"
+  },
+  {
+    "rule_id": "material_aluminum",
+    "dimension": "material",
+    "level_1": "材质",
+    "level_2": "铝合金",
+    "normalized_value": "aluminum",
+    "keywords": ["铝合金", "铝", "高级质感", "金属高级感"],
+    "effects": {
+      "material": "aluminum",
+      "compatibility_constraints": [
+        "铝合金机箱通常价格更高，需要结合预算判断"
+      ]
+    },
+    "description": "用户偏向更高级的金属材质。"
+  },
+  {
+    "rule_id": "rgb_argb",
+    "dimension": "rgb",
+    "level_1": "灯光",
+    "level_2": "ARGB",
+    "normalized_value": "argb",
+    "keywords": ["ARGB", "可调灯", "神光同步", "灯效同步"],
+    "effects": {
+      "rgb": "argb",
+      "compatibility_constraints": [
+        "需要考虑主板ARGB接口或灯控方案",
+        "可选择ARGB风扇、ARGB散热器和灯效内存"
+      ]
+    },
+    "description": "用户希望灯效可控或同步。"
+  },
+  {
+    "rule_id": "rgb_normal",
+    "dimension": "rgb",
+    "level_1": "灯光",
+    "level_2": "RGB",
+    "normalized_value": "rgb",
+    "keywords": ["RGB", "灯光", "彩灯", "炫光", "酷炫灯效"],
+    "effects": {
+      "rgb": "rgb"
+    },
+    "description": "用户接受或偏好RGB灯光。"
+  },
+  {
+    "rule_id": "rgb_no_rgb",
+    "dimension": "rgb",
+    "level_1": "灯光",
+    "level_2": "无灯光",
+    "normalized_value": "no_rgb",
+    "keywords": ["无光", "不要灯", "不要RGB", "不要光污染", "不发光", "黑房间不刺眼"],
+    "effects": {
+      "rgb": "no_rgb",
+      "compatibility_constraints": [
+        "避免选择RGB风扇、RGB内存和灯效散热器",
+        "如果配件带灯，需要支持关闭灯效"
+      ]
+    },
+    "description": "用户明确不希望主机有明显灯光。"
+  },
+  {
+    "rule_id": "rgb_low",
+    "dimension": "rgb",
+    "level_1": "灯光",
+    "level_2": "低调灯效",
+    "normalized_value": "low_rgb",
+    "keywords": ["有一点灯", "不要太亮", "低调灯效", "弱灯光"],
+    "effects": {
+      "rgb": "low_rgb"
+    },
+    "description": "用户可以接受少量灯光，但不希望过度光污染。"
+  },
+  {
+    "rule_id": "noise_silent",
+    "dimension": "noise",
+    "level_1": "静音",
+    "level_2": "强静音",
+    "normalized_value": "silent",
+    "keywords": ["静音", "越安静越好", "不能吵", "很安静", "晚上用"],
+    "effects": {
+      "noise": "silent",
+      "compatibility_constraints": [
+        "优先选择低噪风扇、静音电源和合理散热器",
+        "避免高转速廉价风扇",
+        "需要在散热和噪声之间平衡"
+      ]
+    },
+    "description": "用户对噪声敏感，需要强静音策略。"
+  },
+  {
+    "rule_id": "noise_low",
+    "dimension": "noise",
+    "level_1": "静音",
+    "level_2": "低噪",
+    "normalized_value": "low_noise",
+    "keywords": ["安静", "安静一点", "不要太吵", "低噪", "声音小"],
+    "effects": {
+      "noise": "low_noise",
+      "compatibility_constraints": [
+        "优先考虑低噪风扇和较好的散热器",
+        "不建议为了低价选择明显噪声大的散热方案"
+      ]
+    },
+    "description": "用户有低噪偏好，但不一定要求极致静音。"
+  },
+  {
+    "rule_id": "noise_airflow_first",
+    "dimension": "noise",
+    "level_1": "静音",
+    "level_2": "散热优先",
+    "normalized_value": "airflow_first",
+    "keywords": ["散热优先", "风量大", "温度低", "性能释放"],
+    "effects": {
+      "noise": "airflow_first",
+      "compatibility_constraints": [
+        "可以接受一定噪声换取更好散热",
+        "优先选择高风量机箱和散热方案"
+      ]
+    },
+    "description": "用户更重视散热和性能释放，而不是极致静音。"
+  }
+]

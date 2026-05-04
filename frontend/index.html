@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<!-- 声明 HTML5 文档类型，触发标准模式渲染，避免怪异模式 -->
+<html lang="zh-CN">
+  <!-- lang 指定页面主语言，利于无障碍与搜索引擎 -->
+  <head>
+    <!-- 字符集 UTF-8，覆盖中文与特殊符号 -->
+    <meta charset="UTF-8" />
+    <!-- 视口：移动端按设备宽度缩放，避免桌面宽度被强行缩小 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- 浏览器标签页标题 -->
+    <title>京东装机导购助手</title>
+    <!-- 样式表：相对当前 HTML 路径加载（前后端分离时用静态服务器打开本页） -->
+    <link rel="stylesheet" href="./styles.css" />
+    <!-- Marked：Markdown 转 HTML，defer 表示 HTML 解析完再按顺序执行 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <!-- 运行时配置：设置 PC_GUIDE_API_BASE 并绑定页眉外链，须在 app.js 之前注册 defer 顺序 -->
+    <script src="./config.js" defer></script>
+    <!-- 业务脚本：负责表单提交、追问卡片、结果渲染 -->
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <!-- 页眉：品牌与外链；外链 id 供 config.js 写入后端绝对地址 -->
+    <header class="jd-header">
+      <div class="jd-header-inner">
+        <div class="jd-logo">
+          京东装机导购 <span class="sub">智能选配 · 兼容校验</span>
+        </div>
+        <nav class="jd-header-links">
+          <!-- href 初始为 #，DOMContentLoaded 后由 config.js 替换为 后端/docs -->
+          <a id="link-docs" href="#" target="_blank" rel="noopener">API 文档</a>
+          <!-- 同上，指向 后端/health -->
+          <a id="link-health" href="#" target="_blank" rel="noopener">服务状态</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 提示条：说明演示性质，管理用户预期 -->
+    <div class="jd-subbar">
+      <div class="jd-subbar-inner">
+        当前为 <strong>V1 演示</strong>：商品与价格为 Mock 参考，下单请以京东商详页为准。
+        <strong>前后端分离</strong>：请先启动后端 API（默认 8000），本页由静态服务器打开（见 README）。
+      </div>
+    </div>
+
+    <!-- 主内容区：左右两栏布局 -->
+    <main class="main-wrap">
+      <div class="grid grid-2">
+        <!-- 左侧：输入与追问 -->
+        <section class="card">
+          <div class="card-hd">
+            <h2>说说你的需求</h2>
+            <span class="badge">自然语言</span>
+          </div>
+          <div class="card-bd">
+            <form id="form-main">
+              <label class="lbl" for="user-query">预算 / 用途 / 外观 / 是否要显示器 / 指定显卡型号等</label>
+              <textarea
+                id="user-query"
+                class="jd-input"
+                placeholder="示例：我想配一台 6000-8000 元的主机玩 3A，白色海景房，不要显示器。"
+              ></textarea>
+              <p class="hint">
+                会话 ID：<code id="session-display">（新会话）</code>
+                — 追问时会自动带上上下文。
+              </p>
+              <label class="debug-toggle">
+                <input type="checkbox" id="chk-debug-llm" />
+                <span>调试：展示模型调用轨迹（含思维链字段 <code>reasoning_content</code>，若上游返回）</span>
+              </label>
+              <div class="row-actions">
+                <button type="submit" class="btn btn-primary" id="btn-submit">生成装机方案</button>
+                <button type="button" class="btn btn-ghost" id="btn-clear-session">清空会话</button>
+              </div>
+              <div class="loader-wrap" id="loader">
+                <span class="jd-spinner" aria-hidden="true"></span>
+                <span>正在理解需求并选配配件，请稍候…</span>
+              </div>
+            </form>
+
+            <div id="clarify-wrap" class="clarify-box hidden">
+              <div id="clarify-container"></div>
+            </div>
+            <div id="debug-host" class="debug-host hidden"></div>
+          </div>
+        </section>
+
+        <!-- 右侧：推荐结果 -->
+        <section class="card">
+          <div class="card-hd">
+            <h2>推荐方案</h2>
+            <span class="badge">Top 召回 + 规则校验</span>
+          </div>
+          <div class="card-bd">
+            <div id="result-wrap" class="result-section hidden">
+              <div id="result-inner"></div>
+            </div>
+            <p id="placeholder-hint" class="hint" style="margin: 0">
+              提交需求后，这里会展示配件清单、参考总价、兼容性与风险提示。
+            </p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <p class="footer-note">
+      © 演示界面 · 样式参考京东红白配色，非京东官方页面。
+    </p>
+
+    <!-- 占位符显隐：监听结果区 hidden 类变化，同步显示/隐藏右侧提示文案 -->
+    <script>
+      // 立即执行：不污染全局，仅注册 MutationObserver
+      document.addEventListener("DOMContentLoaded", function () {
+        var rw = document.getElementById("result-wrap"); // 结果外层容器
+        var ph = document.getElementById("placeholder-hint"); // 占位提示段落
+        if (!rw || !ph) {
+          return; // 缺任一元素则跳过，避免控制台报错
+        }
+        var obs = new MutationObserver(function () {
+          // classList.contains("hidden") 为真表示尚无结果展示，占位可见
+          ph.style.display = rw.classList.contains("hidden") ? "block" : "none";
+        });
+        obs.observe(rw, { attributes: true, attributeFilter: ["class"] }); // 仅观察 class 属性变化
+      });
+    </script>
+  </body>
+</html>

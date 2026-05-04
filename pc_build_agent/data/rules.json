@@ -1,0 +1,88 @@
+{
+  "cpu_motherboard_rules": [
+    {
+      "cpu_pattern": "i5-13|i7-13|i9-13|i5-14|i7-14|i9-14",
+      "allowed_motherboard_patterns": ["B760", "Z790", "B660", "Z690", "H610"]
+    },
+    {
+      "cpu_pattern": "Ryzen 5 7600|Ryzen 7 7700|Ryzen 5 7500F|R5 7500F|R5 7600|R7 7700",
+      "allowed_motherboard_patterns": ["A620", "B650", "X670"]
+    },
+    {
+      "cpu_pattern": "Ryzen 5 5600|Ryzen 7 5700X|R5 5600",
+      "allowed_motherboard_patterns": ["A520", "B550", "X570"]
+    }
+  ],
+  "memory_rules": [
+    {
+      "motherboard_pattern": "DDR5",
+      "required_memory_pattern": "DDR5"
+    },
+    {
+      "motherboard_pattern": "DDR4",
+      "required_memory_pattern": "DDR4"
+    }
+  ],
+  "power_rules": [
+    {
+      "gpu_pattern": "RTX 4090",
+      "min_psu_watt": 850,
+      "recommended_psu_watt": 1000
+    },
+    {
+      "gpu_pattern": "RTX 4080",
+      "min_psu_watt": 750,
+      "recommended_psu_watt": 850
+    },
+    {
+      "gpu_pattern": "RTX 4070 Ti|4070Ti",
+      "min_psu_watt": 650,
+      "recommended_psu_watt": 750
+    },
+    {
+      "gpu_pattern": "RTX 4070 SUPER|4070S",
+      "min_psu_watt": 650,
+      "recommended_psu_watt": 750
+    },
+    {
+      "gpu_pattern": "RTX 4070",
+      "min_psu_watt": 650,
+      "recommended_psu_watt": 750
+    },
+    {
+      "gpu_pattern": "RTX 4060 Ti|4060Ti",
+      "min_psu_watt": 550,
+      "recommended_psu_watt": 650
+    },
+    {
+      "gpu_pattern": "RTX 4060",
+      "min_psu_watt": 500,
+      "recommended_psu_watt": 600
+    },
+    {
+      "gpu_pattern": "RX 7900",
+      "min_psu_watt": 750,
+      "recommended_psu_watt": 850
+    },
+    {
+      "gpu_pattern": "RX 7800|RX 7700",
+      "min_psu_watt": 650,
+      "recommended_psu_watt": 750
+    },
+    {
+      "gpu_pattern": "无需独立显卡|核显办公",
+      "min_psu_watt": 300,
+      "recommended_psu_watt": 400
+    }
+  ],
+  "cooler_rules": [
+    {
+      "cpu_pattern": "13600KF|14600KF|13700KF|14700KF|13900K|14900K",
+      "recommended_cooler_keywords": ["双塔", "240", "280", "360", "水冷"]
+    },
+    {
+      "cpu_pattern": "Ryzen 9|R9 ",
+      "recommended_cooler_keywords": ["双塔", "240", "280", "360", "水冷"]
+    }
+  ]
+}
