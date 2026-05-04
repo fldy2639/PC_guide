@@ -1,0 +1,12 @@
+{
+  "_comment": "导入 data/ssd.json 的 items[]；字段以 schemas/ssd.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "capacity_gb": 0,
+  "interface": "NVMe",
+  "form_factor": "M.2",
+  "pcie_version": null,
+  "dram_cache": null,
+  "notes": null
+}

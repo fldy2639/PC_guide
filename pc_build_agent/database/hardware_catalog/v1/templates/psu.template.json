@@ -1,0 +1,13 @@
+{
+  "_comment": "导入 data/psu.json 的 items[]；字段以 schemas/psu.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "wattage": 0,
+  "efficiency_rating": "",
+  "form_factor": "ATX",
+  "modular": "Full",
+  "pcie_8pin_count": 0,
+  "fan_mode": null,
+  "notes": null
+}

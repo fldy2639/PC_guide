@@ -1,0 +1,13 @@
+{
+  "_comment": "导入 data/cooling.json 的 items[]；字段以 schemas/cooling.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "cooler_type": "Air",
+  "tdp_rating_w": 0,
+  "height_mm": null,
+  "radiator_mm": null,
+  "socket_support": [],
+  "noise_max_db": null,
+  "notes": null
+}

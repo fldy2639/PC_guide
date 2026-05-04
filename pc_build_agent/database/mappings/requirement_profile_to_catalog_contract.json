@@ -1,0 +1,32 @@
+{
+  "version": "v1",
+  "description": "RequirementProfile 与 hardware_catalog 的消费契约（静态说明）。实现以 Pydantic RequirementProfile 为准，本文件随目录结构演进。",
+  "requirement_profile_schema": "pc_build_agent/schemas/requirement_profile_schema.py:RequirementProfile",
+  "hardware_catalog_root": "pc_build_agent/database/hardware_catalog/v1",
+  "principles": [
+    "第一层只产出 RequirementProfile，不查询 hardware_catalog。",
+    "PartsSelectionAgent 以 RequirementProfile 与 hardware_catalog 为数据源；映射文件说明字段与路径约定。",
+    "profile 中不出现具体 SKU；SKU 仅存在于 hardware_catalog/data/*.json 的 items[]。"
+  ],
+  "data_files_by_category": {
+    "CPU": "data/cpu.json",
+    "GPU": "data/gpu.json",
+    "motherboard": "data/motherboard.json",
+    "RAM": "data/ram.json",
+    "SSD": "data/ssd.json",
+    "cooling": "data/cooling.json",
+    "PSU": "data/psu.json",
+    "case": "data/case.json"
+  },
+  "schema_files_by_category": {
+    "CPU": "schemas/cpu.schema.json",
+    "GPU": "schemas/gpu.schema.json",
+    "motherboard": "schemas/motherboard.schema.json",
+    "RAM": "schemas/ram.schema.json",
+    "SSD": "schemas/ssd.schema.json",
+    "cooling": "schemas/cooling.schema.json",
+    "PSU": "schemas/psu.schema.json",
+    "case": "schemas/case.schema.json"
+  },
+  "profile_sections": []
+}

@@ -1,0 +1,14 @@
+{
+  "_comment": "导入 data/motherboard.json 的 items[]；字段以 schemas/motherboard.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "socket": "",
+  "chipset": "",
+  "form_factor": "M-ATX",
+  "memory_slots": 4,
+  "m2_slots": 2,
+  "pcie_x16_slots": 1,
+  "wifi_onboard": false,
+  "notes": null
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/gpu.schema.json",
+  "title": "GPU",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "vram_gb", "tdp_w", "length_mm", "slot_width"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "vram_gb": { "type": "integer", "minimum": 1 },
+    "tdp_w": { "type": "integer", "minimum": 1 },
+    "length_mm": { "type": "integer", "minimum": 1 },
+    "slot_width": { "type": "number", "minimum": 1 },
+    "power_connector": { "type": ["string", "null"] },
+    "pcie_version": { "type": ["string", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

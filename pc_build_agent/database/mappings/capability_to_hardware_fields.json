@@ -1,0 +1,5 @@
+{
+  "version": "v1",
+  "description": "抽象能力/策略轴与 hardware_catalog 字段的对照。选件层据此从 RequirementProfile 推导应读取的 catalog 字段；第一层实现不应直接读取 hardware_catalog。",
+  "mappings": []
+}

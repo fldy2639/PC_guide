@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/cpu.schema.json",
+  "title": "CPU",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "socket", "cores", "threads", "tdp_w"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "socket": { "type": "string" },
+    "cores": { "type": "integer", "minimum": 1 },
+    "threads": { "type": "integer", "minimum": 1 },
+    "base_ghz": { "type": ["number", "null"] },
+    "boost_ghz": { "type": ["number", "null"] },
+    "tdp_w": { "type": "integer", "minimum": 1 },
+    "pcie_version": { "type": ["string", "null"] },
+    "integrated_graphics": { "type": "boolean" },
+    "memory_types_supported": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": ["string", "null"] }
+  }
+}

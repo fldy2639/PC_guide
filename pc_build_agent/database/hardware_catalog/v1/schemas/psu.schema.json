@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/psu.schema.json",
+  "title": "PSU",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "wattage", "efficiency_rating", "form_factor"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "wattage": { "type": "integer", "minimum": 1 },
+    "efficiency_rating": { "type": "string" },
+    "form_factor": { "type": "string", "enum": ["ATX", "SFX", "SFX-L", "TFX"] },
+    "modular": { "type": "string", "enum": ["Full", "Semi", "Non"] },
+    "pcie_8pin_count": { "type": "integer", "minimum": 0 },
+    "fan_mode": { "type": ["string", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

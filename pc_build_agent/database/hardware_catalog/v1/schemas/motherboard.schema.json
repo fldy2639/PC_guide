@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/motherboard.schema.json",
+  "title": "Motherboard",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "socket", "chipset", "form_factor"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "socket": { "type": "string" },
+    "chipset": { "type": "string" },
+    "form_factor": { "type": "string", "enum": ["Mini-ITX", "M-ATX", "ATX", "E-ATX"] },
+    "memory_slots": { "type": "integer", "minimum": 1 },
+    "m2_slots": { "type": "integer", "minimum": 0 },
+    "pcie_x16_slots": { "type": "integer", "minimum": 0 },
+    "wifi_onboard": { "type": "boolean" },
+    "notes": { "type": ["string", "null"] }
+  }
+}

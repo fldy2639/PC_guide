@@ -1,0 +1,6 @@
+{
+  "version": "v1",
+  "description": "预算压力 -> 八大件保护/压缩等策略（无具体价格点位）。初始占位。",
+  "components": ["cpu", "gpu", "motherboard", "ram", "ssd", "cooling", "psu", "case"],
+  "levels": []
+}

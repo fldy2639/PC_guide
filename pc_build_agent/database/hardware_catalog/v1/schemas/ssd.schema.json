@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/ssd.schema.json",
+  "title": "SSD",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "capacity_gb", "interface", "form_factor"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "capacity_gb": { "type": "integer", "minimum": 1 },
+    "interface": { "type": "string", "enum": ["NVMe", "SATA"] },
+    "form_factor": { "type": "string", "enum": ["M.2", "2.5"] },
+    "pcie_version": { "type": ["string", "null"] },
+    "dram_cache": { "type": ["boolean", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

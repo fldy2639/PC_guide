@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/case.schema.json",
+  "title": "Case",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "motherboard_support", "max_gpu_length_mm", "max_cooler_height_mm"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "motherboard_support": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["Mini-ITX", "M-ATX", "ATX", "E-ATX"] }
+    },
+    "max_gpu_length_mm": { "type": "integer", "minimum": 1 },
+    "max_cooler_height_mm": { "type": ["integer", "null"] },
+    "psu_form_factor": { "type": "array", "items": { "type": "string" } },
+    "volume_l": { "type": ["number", "null"] },
+    "panel_type": { "type": ["string", "null"] },
+    "fan_slots": { "type": ["integer", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

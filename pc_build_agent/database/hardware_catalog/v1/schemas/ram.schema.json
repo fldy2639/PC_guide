@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/ram.schema.json",
+  "title": "RAM",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "brand", "model", "capacity_gb", "speed_mts", "modules", "ddr_generation"],
+  "properties": {
+    "id": { "type": "string" },
+    "brand": { "type": "string" },
+    "model": { "type": "string" },
+    "capacity_gb": { "type": "integer", "minimum": 1 },
+    "speed_mts": { "type": "integer", "minimum": 1 },
+    "modules": { "type": "integer", "minimum": 1 },
+    "ddr_generation": { "type": "string", "enum": ["DDR4", "DDR5"] },
+    "timings": { "type": ["string", "null"] },
+    "notes": { "type": ["string", "null"] }
+  }
+}

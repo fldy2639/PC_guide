@@ -1,0 +1,14 @@
+{
+  "_comment": "导入 data/case.json 的 items[]；字段以 schemas/case.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "motherboard_support": ["M-ATX", "ATX"],
+  "max_gpu_length_mm": 0,
+  "max_cooler_height_mm": null,
+  "psu_form_factor": ["ATX"],
+  "volume_l": null,
+  "panel_type": null,
+  "fan_slots": null,
+  "notes": null
+}

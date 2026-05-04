@@ -1,0 +1,16 @@
+{
+  "_comment": "导入 data/cpu.json 的 items[] 前删除 _comment。字段以 schemas/cpu.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "socket": "",
+  "cores": 0,
+  "threads": 0,
+  "base_ghz": null,
+  "boost_ghz": null,
+  "tdp_w": 0,
+  "pcie_version": null,
+  "integrated_graphics": false,
+  "memory_types_supported": [],
+  "notes": null
+}

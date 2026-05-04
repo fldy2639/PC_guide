@@ -1,0 +1,12 @@
+{
+  "_comment": "导入 data/ram.json 的 items[]；字段以 schemas/ram.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "capacity_gb": 0,
+  "speed_mts": 0,
+  "modules": 2,
+  "ddr_generation": "DDR5",
+  "timings": null,
+  "notes": null
+}

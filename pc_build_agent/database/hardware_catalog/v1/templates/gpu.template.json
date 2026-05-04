@@ -1,0 +1,13 @@
+{
+  "_comment": "导入 data/gpu.json 的 items[]；字段以 schemas/gpu.schema.json 为准。",
+  "id": "",
+  "brand": "",
+  "model": "",
+  "vram_gb": 0,
+  "tdp_w": 0,
+  "length_mm": 0,
+  "slot_width": 2,
+  "power_connector": null,
+  "pcie_version": null,
+  "notes": null
+}

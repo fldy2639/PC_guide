@@ -1,0 +1,6 @@
+{
+  "version": "v1",
+  "description": "能力需求画像 -> 八大件相对权重等策略输入（无硬件型号）。初始占位。",
+  "components": ["cpu", "gpu", "motherboard", "ram", "ssd", "cooling", "psu", "case"],
+  "profiles": []
+}
