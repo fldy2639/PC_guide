@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from pc_build_agent.schemas.price_schema import ComponentBudgetPolicyItem, PriceAgentOutput, PriceOutput
+from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 
 class PriceRequirementAgent:
@@ -59,15 +60,27 @@ class PriceRequirementAgent:
         "compact_low_noise_cost_driver": "compact_low_noise_cost",
     }
 
-    def __init__(self, rule_path: str | Path | None = None, llm: Any | None = None):
-        default_rule_path = Path(__file__).resolve().parents[1] / "rules" / "price_rules.json"
-        self.rule_path = Path(rule_path or default_rule_path)
-        self.rules = self.load_rules(self.rule_path)
+    def __init__(
+        self,
+        rule_path: str | Path | None = None,
+        llm: Any | None = None,
+        knowledge_repo: RequirementKnowledgeRepository | None = None,
+    ):
+        self.rule_path = Path(rule_path) if rule_path is not None else None
+        if self.rule_path is not None:
+            self.rules = self.load_rules(self.rule_path)
+        else:
+            repo = knowledge_repo or RequirementKnowledgeRepository()
+            self.rules = self.load_rule_items(repo.get_rules("price"))
         self.llm = llm
 
     def load_rules(self, rule_path: Path) -> dict[str, Any]:
         with rule_path.open("r", encoding="utf-8") as f:
-            return json.load(f)
+            return self.load_rule_items(json.load(f))
+
+    @staticmethod
+    def load_rule_items(raw: Any) -> dict[str, Any]:
+        return dict(raw or {})
 
     def normalize_text(self, text: str) -> str:
         return re.sub(r"\s+", "", text.strip().lower())

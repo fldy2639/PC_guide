@@ -1,0 +1,763 @@
+[
+  {
+    "rule_id": "scope_host_only",
+    "dimension": "purchase_scope",
+    "level_1": "预算包含范围",
+    "level_2": "只要主机",
+    "keywords": ["只要主机", "单主机", "不含显示器", "不用显示器", "只配主机", "主机预算", "预算只算主机"],
+    "effects": {
+      "purchase_scope": {
+        "only_host": true,
+        "include_monitor": false
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["host_only"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "budget_is_for_host_only",
+            "target": "price",
+            "target_effect": "effective_budget_applies_to_host_only",
+            "priority": "high",
+            "reason": "用户明确预算只覆盖主机，价格策略无需为显示器预留预算。"
+          }
+        ]
+      }
+    },
+    "description": "用户预算只覆盖主机，不包含显示器。"
+  },
+  {
+    "rule_id": "scope_include_monitor",
+    "dimension": "purchase_scope",
+    "level_1": "预算包含范围",
+    "level_2": "包含显示器",
+    "keywords": ["带显示器", "包含显示器", "连显示器", "含显示器", "一整套"],
+    "effects": {
+      "purchase_scope": {
+        "only_host": false,
+        "include_monitor": true
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["include_monitor"],
+        "compatibility_checks": ["monitor_gpu_port_compatibility"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "monitor_budget_required",
+            "target": "price",
+            "target_effect": "reserve_budget_for_monitor",
+            "priority": "high",
+            "reason": "预算需要覆盖显示器，应增加外部预算范围压力。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "monitor_gpu_port_compatibility_required",
+            "target": "selection",
+            "target_effect": "check_monitor_output_compatibility",
+            "priority": "medium",
+            "reason": "如果预算含显示器，选件阶段需要关注显示输出接口兼容性。"
+          }
+        ]
+      }
+    },
+    "description": "用户预算需要覆盖显示器。"
+  },
+  {
+    "rule_id": "scope_include_peripherals",
+    "dimension": "purchase_scope",
+    "level_1": "预算包含范围",
+    "level_2": "包含外设",
+    "keywords": ["带键鼠", "包含键鼠", "含外设", "键盘鼠标", "一整套"],
+    "effects": {
+      "purchase_scope": {
+        "include_peripherals": true
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["include_peripherals"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "peripherals_budget_required",
+            "target": "price",
+            "target_effect": "reserve_budget_for_peripherals",
+            "priority": "medium",
+            "reason": "预算需要覆盖键鼠等外设，会压缩主机可用预算。"
+          }
+        ]
+      }
+    },
+    "description": "用户预算需要覆盖键盘、鼠标等外设。"
+  },
+  {
+    "rule_id": "scope_include_os",
+    "dimension": "purchase_scope",
+    "level_1": "预算包含范围",
+    "level_2": "包含系统",
+    "keywords": ["带系统", "正版系统", "包含系统", "装好系统"],
+    "effects": {
+      "purchase_scope": {
+        "include_os": true
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["include_os"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "os_budget_required",
+            "target": "price",
+            "target_effect": "reserve_budget_for_os",
+            "priority": "medium",
+            "reason": "正版系统或装好系统会带来额外预算占用。"
+          }
+        ]
+      }
+    },
+    "description": "用户可能需要预留操作系统成本。"
+  },
+  {
+    "rule_id": "owned_monitor",
+    "dimension": "owned_parts",
+    "level_1": "已有配件",
+    "level_2": "已有显示器",
+    "keywords": ["有显示器了", "已有显示器", "显示器不用买", "显示器已有", "有显示器"],
+    "effects": {
+      "owned_parts": {
+        "has_monitor": true
+      },
+      "purchase_scope": {
+        "include_monitor": false
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["monitor_already_owned"]
+      }
+    },
+    "description": "用户已有显示器，通常不需要在预算中购买显示器。"
+  },
+  {
+    "rule_id": "owned_keyboard_mouse",
+    "dimension": "owned_parts",
+    "level_1": "已有配件",
+    "level_2": "已有键鼠",
+    "keywords": ["有键鼠了", "已有键鼠", "键鼠不用买", "键盘鼠标已有", "有键鼠", "键鼠了"],
+    "effects": {
+      "owned_parts": {
+        "has_keyboard_mouse": true
+      },
+      "purchase_scope": {
+        "include_peripherals": false
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["keyboard_mouse_already_owned"]
+      }
+    },
+    "description": "用户已有键鼠，不需要重复购买。"
+  },
+  {
+    "rule_id": "connectivity_wifi",
+    "dimension": "connectivity",
+    "level_1": "网络与无线需求",
+    "level_2": "WiFi需求",
+    "keywords": ["要WiFi", "需要WiFi", "无线网", "无线网络", "不方便插网线", "宿舍无线"],
+    "effects": {
+      "connectivity": {
+        "need_wifi": true,
+        "connectivity_strategy": "prefer_wifi_motherboard"
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["wifi_required"],
+        "compatibility_checks": ["motherboard_wifi_or_adapter"]
+      },
+      "cross_module_signals": {
+        "performance_signals": [
+          {
+            "signal": "wireless_network_stability_required",
+            "target": "performance",
+            "target_effect": "increase_network_priority_if_gaming_or_streaming",
+            "priority": "medium",
+            "reason": "用户需要无线网络，如果同时存在游戏或直播场景，需要提高网络稳定性权重。"
+          }
+        ],
+        "price_signals": [
+          {
+            "signal": "wifi_bluetooth_cost_driver",
+            "target": "price",
+            "target_effect": "increase_motherboard_or_adapter_budget",
+            "priority": "medium",
+            "reason": "WiFi需求可能提高主板或无线网卡预算。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "wifi_required",
+            "target": "selection",
+            "target_effect": "must_have_wifi_or_adapter",
+            "priority": "high",
+            "reason": "第二层配件选择必须保证WiFi能力。"
+          }
+        ]
+      }
+    },
+    "description": "用户需要无线网络，应优先选择带WiFi主板或预留无线网卡。"
+  },
+  {
+    "rule_id": "connectivity_bluetooth",
+    "dimension": "connectivity",
+    "level_1": "网络与无线需求",
+    "level_2": "蓝牙需求",
+    "keywords": ["要蓝牙", "需要蓝牙", "蓝牙耳机", "蓝牙手柄", "无线手柄"],
+    "effects": {
+      "connectivity": {
+        "need_bluetooth": true,
+        "connectivity_strategy": "prefer_wifi_motherboard"
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["bluetooth_required"],
+        "compatibility_checks": ["motherboard_bluetooth_or_adapter"]
+      },
+      "cross_module_signals": {
+        "performance_signals": [
+          {
+            "signal": "wireless_peripheral_connectivity_required",
+            "target": "performance",
+            "target_effect": "preserve_wireless_connectivity_stability",
+            "priority": "low",
+            "reason": "蓝牙需求会提高无线连接稳定性的附加约束。"
+          }
+        ],
+        "price_signals": [
+          {
+            "signal": "wifi_bluetooth_cost_driver",
+            "target": "price",
+            "target_effect": "increase_motherboard_or_adapter_budget",
+            "priority": "medium",
+            "reason": "蓝牙需求可能提高主板或无线模块预算。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "bluetooth_required",
+            "target": "selection",
+            "target_effect": "must_have_bluetooth_or_adapter",
+            "priority": "high",
+            "reason": "第二层配件选择必须保证蓝牙能力。"
+          }
+        ]
+      }
+    },
+    "description": "用户需要蓝牙，应优先选择带蓝牙主板或无线模块。"
+  },
+  {
+    "rule_id": "risk_new_parts_only",
+    "dimension": "purchase_risk",
+    "level_1": "购买风险",
+    "level_2": "只接受全新",
+    "keywords": ["不要二手", "不接受二手", "全新", "不要矿卡", "不要拆机", "正规渠道"],
+    "effects": {
+      "purchase_risk": {
+        "accept_used_parts": false,
+        "accept_mining_gpu": false,
+        "prefer_official_channel": true,
+        "risk_tolerance": "low"
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["new_parts_only"],
+        "avoid_features": ["used_gpu", "mining_gpu", "used_parts"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "new_parts_only_cost_driver",
+            "target": "price",
+            "target_effect": "increase_budget_pressure_and_disallow_used_parts_discount",
+            "priority": "medium",
+            "reason": "用户不接受二手，不能通过二手显卡、散片或风险配件降低成本。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "new_parts_only",
+            "target": "selection",
+            "target_effect": "exclude_used_and_mining_parts",
+            "priority": "high",
+            "reason": "第二层配件选择必须排除二手、矿卡或其他风险件。"
+          }
+        ]
+      }
+    },
+    "description": "用户不接受二手或高风险配件。"
+  },
+  {
+    "rule_id": "risk_used_allowed",
+    "dimension": "purchase_risk",
+    "level_1": "购买风险",
+    "level_2": "接受二手",
+    "keywords": ["可以二手", "接受二手", "二手也行", "散片也行", "便宜就行"],
+    "effects": {
+      "purchase_risk": {
+        "accept_used_parts": true,
+        "risk_tolerance": "high"
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["allow_used_parts_if_cost_effective"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "used_parts_allowed_can_reduce_cost",
+            "target": "price",
+            "target_effect": "allow_used_parts_discount_path",
+            "priority": "medium",
+            "reason": "接受二手会为预算策略提供额外降成本空间。"
+          }
+        ]
+      }
+    },
+    "description": "用户可能接受二手或风险较高的低价策略。"
+  },
+  {
+    "rule_id": "warranty_service_needed",
+    "dimension": "warranty_service",
+    "level_1": "质保与售后",
+    "level_2": "需要质保售后",
+    "keywords": ["要质保", "售后方便", "整机质保", "不想折腾", "稳定点", "小白装机", "买回来直接用"],
+    "effects": {
+      "warranty_service": {
+        "need_warranty": true,
+        "prefer_full_machine_warranty": true,
+        "low_troubleshooting_tolerance": true,
+        "stability_priority": "high"
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["warranty_preferred", "stable_mainstream_parts"],
+        "avoid_features": ["high_risk_parts", "obscure_parts"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "warranty_service_cost_driver",
+            "target": "price",
+            "target_effect": "increase_quality_and_service_budget_pressure",
+            "priority": "medium",
+            "reason": "用户重视售后与稳定，会减少低价高风险方案的可用性。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "stable_mainstream_parts_preferred",
+            "target": "selection",
+            "target_effect": "prefer_mainstream_low_risk_parts",
+            "priority": "medium",
+            "reason": "第二层配件选择应优先稳定、售后友好的主流配件。"
+          }
+        ]
+      }
+    },
+    "description": "用户重视稳定、售后和低折腾。"
+  },
+  {
+    "rule_id": "assembly_service_needed",
+    "dimension": "warranty_service",
+    "level_1": "质保与售后",
+    "level_2": "需要装机服务",
+    "keywords": ["帮忙装好", "装好能用", "买回来能用", "不会装机", "小白"],
+    "effects": {
+      "warranty_service": {
+        "need_assembly_service": true,
+        "low_troubleshooting_tolerance": true
+      },
+      "purchase_scope": {
+        "include_assembly_service": true
+      },
+      "constraints_for_selection_agent": {
+        "budget_scope_modifiers": ["include_assembly_service"],
+        "prefer_features": ["ready_to_use_build"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "assembly_service_budget_required",
+            "target": "price",
+            "target_effect": "reserve_budget_for_assembly_service",
+            "priority": "medium",
+            "reason": "装机服务或整机交付可能占用额外预算。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "ready_to_use_build_preferred",
+            "target": "selection",
+            "target_effect": "prefer_easy_to_deliver_build",
+            "priority": "low",
+            "reason": "如果需要装机服务，选件阶段应优先标准化、易交付的方案。"
+          }
+        ]
+      }
+    },
+    "description": "用户可能需要装机服务或整机交付。"
+  },
+  {
+    "rule_id": "upgrade_future_gpu",
+    "dimension": "upgrade_plan",
+    "level_1": "升级空间",
+    "level_2": "未来升级显卡",
+    "keywords": ["以后升级显卡", "后面换显卡", "未来换显卡", "显卡以后升级", "电源大一点", "机箱别太小"],
+    "effects": {
+      "upgrade_plan": {
+        "upgrade_space_required": true,
+        "future_gpu_upgrade": true,
+        "upgrade_priority": "high"
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["psu_upgrade_headroom", "gpu_clearance_headroom"],
+        "prefer_features": ["case_airflow_headroom"],
+        "avoid_features": ["low_wattage_psu", "very_small_case_without_gpu_clearance"],
+        "compatibility_checks": ["future_gpu_length_clearance", "psu_wattage_headroom"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "upgrade_space_cost_driver",
+            "target": "price",
+            "target_effect": "increase_psu_motherboard_case_budget_priority",
+            "priority": "medium",
+            "reason": "未来升级显卡会提高电源、机箱和主板预算保护需求。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "future_gpu_upgrade_space_required",
+            "target": "selection",
+            "target_effect": "reserve_gpu_clearance_and_psu_headroom",
+            "priority": "high",
+            "reason": "第二层配件选择必须为未来显卡升级预留机箱长度和电源功率余量。"
+          }
+        ]
+      }
+    },
+    "description": "未来升级显卡会影响电源、机箱和主板选择。"
+  },
+  {
+    "rule_id": "upgrade_ram_storage",
+    "dimension": "upgrade_plan",
+    "level_1": "升级空间",
+    "level_2": "未来加内存或硬盘",
+    "keywords": ["以后加内存", "以后加硬盘", "后面加硬盘", "以后扩容", "多留接口"],
+    "effects": {
+      "upgrade_plan": {
+        "upgrade_space_required": true,
+        "future_ram_upgrade": true,
+        "future_storage_upgrade": true,
+        "upgrade_priority": "medium"
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["extra_ram_slots", "extra_m2_slots", "storage_expandability"],
+        "compatibility_checks": ["motherboard_ram_slots", "motherboard_m2_slots"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "motherboard_expandability_cost_driver",
+            "target": "price",
+            "target_effect": "increase_motherboard_expandability_budget_priority",
+            "priority": "medium",
+            "reason": "后续扩展内存和存储会提高主板扩展能力预算要求。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "future_ram_storage_expandability_required",
+            "target": "selection",
+            "target_effect": "prefer_extra_ram_and_storage_slots",
+            "priority": "medium",
+            "reason": "第二层配件选择应优先保留更多内存与存储扩展位。"
+          }
+        ]
+      }
+    },
+    "description": "用户希望后续扩展内存或存储。"
+  },
+  {
+    "rule_id": "environment_dormitory",
+    "dimension": "usage_environment",
+    "level_1": "使用环境",
+    "level_2": "宿舍",
+    "keywords": ["宿舍", "宿舍用", "寝室", "学生宿舍"],
+    "effects": {
+      "usage_environment": {
+        "scene": "dormitory",
+        "space_limited": true,
+        "noise_sensitive": true
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["compact_case", "low_noise"],
+        "avoid_features": ["oversized_case_for_dormitory"]
+      },
+      "cross_module_signals": {
+        "appearance_signals": [
+          {
+            "signal": "compact_case_preferred",
+            "target": "appearance",
+            "target_effect": "prefer_compact_m_atx",
+            "priority": "medium",
+            "reason": "宿舍空间有限，建议优先紧凑M-ATX或小型机箱。"
+          },
+          {
+            "signal": "low_noise_preferred",
+            "target": "appearance",
+            "target_effect": "prefer_low_noise",
+            "priority": "medium",
+            "reason": "宿舍环境通常对噪声更敏感。"
+          }
+        ],
+        "price_signals": [
+          {
+            "signal": "compact_low_noise_cost_driver",
+            "target": "price",
+            "target_effect": "increase_case_and_cooling_budget_pressure",
+            "priority": "medium",
+            "reason": "紧凑和低噪需求可能提高机箱、散热和电源成本。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "avoid_oversized_case_for_dormitory",
+            "target": "selection",
+            "target_effect": "avoid_oversized_case",
+            "priority": "medium",
+            "reason": "宿舍空间有限，应避免过大机箱。"
+          }
+        ]
+      }
+    },
+    "description": "宿舍场景通常意味着空间有限、噪声敏感，可能还需要无线网络。"
+  },
+  {
+    "rule_id": "environment_desktop",
+    "dimension": "usage_environment",
+    "level_1": "使用环境",
+    "level_2": "桌面摆放",
+    "keywords": ["放桌面", "桌面放", "桌搭", "桌面空间"],
+    "effects": {
+      "usage_environment": {
+        "placement": "desktop",
+        "space_limited": true
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["desktop_friendly_case_size"]
+      },
+      "cross_module_signals": {
+        "appearance_signals": [
+          {
+            "signal": "desktop_case_size_preferred",
+            "target": "appearance",
+            "target_effect": "prefer_desktop_friendly_case_size",
+            "priority": "medium",
+            "reason": "桌面摆放会提高对机箱尺寸与桌搭协调性的关注。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "desktop_friendly_case_size_required",
+            "target": "selection",
+            "target_effect": "prefer_desktop_friendly_case_size",
+            "priority": "low",
+            "reason": "第二层配件选择应优先更适合桌面摆放的机箱尺寸。"
+          }
+        ]
+      }
+    },
+    "description": "桌面摆放会影响机箱尺寸和外观权重。"
+  },
+  {
+    "rule_id": "environment_night_use",
+    "dimension": "usage_environment",
+    "level_1": "使用环境",
+    "level_2": "夜间使用",
+    "keywords": ["晚上用", "夜里用", "不想打扰室友", "不能吵"],
+    "effects": {
+      "usage_environment": {
+        "noise_sensitive": true
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["low_noise"]
+      },
+      "cross_module_signals": {
+        "appearance_signals": [
+          {
+            "signal": "low_noise_preferred",
+            "target": "appearance",
+            "target_effect": "prefer_low_noise",
+            "priority": "medium",
+            "reason": "夜间使用或不打扰室友会提高低噪需求。"
+          }
+        ],
+        "price_signals": [
+          {
+            "signal": "low_noise_cost_driver",
+            "target": "price",
+            "target_effect": "increase_cooling_and_psu_budget_priority",
+            "priority": "medium",
+            "reason": "低噪需求可能提高散热和电源成本。"
+          }
+        ]
+      }
+    },
+    "description": "夜间使用通常意味着静音需求。"
+  },
+  {
+    "rule_id": "special_front_type_c",
+    "dimension": "special_requirements",
+    "level_1": "特殊接口",
+    "level_2": "前置Type-C",
+    "keywords": ["前置Type-C", "前置typec", "机箱Type-C", "前面板Type-C"],
+    "effects": {
+      "special_requirements": {
+        "front_type_c_required": true,
+        "special_interfaces": ["front_type_c"]
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["front_type_c_required"],
+        "compatibility_checks": ["case_front_type_c_header", "motherboard_front_type_c_header"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "front_type_c_cost_driver",
+            "target": "price",
+            "target_effect": "increase_case_and_motherboard_feature_budget",
+            "priority": "medium",
+            "reason": "前置 Type-C 可能提高机箱和主板功能档位要求。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "front_type_c_required",
+            "target": "selection",
+            "target_effect": "must_match_case_and_motherboard_type_c_header",
+            "priority": "high",
+            "reason": "第二层配件选择必须同时保证机箱和主板支持前置 Type-C。"
+          }
+        ]
+      }
+    },
+    "description": "前置 Type-C 需要机箱和主板同时支持。"
+  },
+  {
+    "rule_id": "special_many_usb",
+    "dimension": "special_requirements",
+    "level_1": "特殊接口",
+    "level_2": "多个USB接口",
+    "keywords": ["很多USB", "多个USB", "USB口多", "接很多设备"],
+    "effects": {
+      "special_requirements": {
+        "usb_ports_priority": "high",
+        "special_interfaces": ["multiple_usb"]
+      },
+      "constraints_for_selection_agent": {
+        "prefer_features": ["many_usb_ports"],
+        "compatibility_checks": ["motherboard_usb_ports", "case_front_io"]
+      },
+      "cross_module_signals": {
+        "price_signals": [
+          {
+            "signal": "io_expandability_cost_driver",
+            "target": "price",
+            "target_effect": "increase_io_expandability_budget_priority",
+            "priority": "low",
+            "reason": "更多 USB 接口可能提高主板或机箱前 IO 成本。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "many_usb_ports_preferred",
+            "target": "selection",
+            "target_effect": "prefer_more_usb_ports",
+            "priority": "medium",
+            "reason": "第二层配件选择应优先 USB 接口更丰富的主板和机箱前 IO。"
+          }
+        ]
+      }
+    },
+    "description": "用户需要更多外设接口。"
+  },
+  {
+    "rule_id": "special_multi_monitor",
+    "dimension": "special_requirements",
+    "level_1": "特殊功能",
+    "level_2": "多显示器",
+    "keywords": ["双显示器", "两个显示器", "多显示器", "接两个屏", "接4K显示器", "4K显示器"],
+    "effects": {
+      "special_requirements": {
+        "multi_monitor_required": true,
+        "special_interfaces": ["multi_display_output"]
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["multi_display_output_required"],
+        "compatibility_checks": ["display_output_ports"]
+      },
+      "cross_module_signals": {
+        "performance_signals": [
+          {
+            "signal": "multi_monitor_display_output_required",
+            "target": "performance",
+            "target_effect": "increase_display_output_requirement",
+            "priority": "medium",
+            "reason": "用户需要多显示器或4K显示输出，需要检查核显、主板或显卡的视频输出能力。"
+          }
+        ],
+        "selection_signals": [
+          {
+            "signal": "display_output_ports_required",
+            "target": "selection",
+            "target_effect": "check_gpu_or_motherboard_display_ports",
+            "priority": "high",
+            "reason": "配件选择阶段必须检查显示输出接口数量和规格。"
+          }
+        ]
+      }
+    },
+    "description": "多显示器需求会影响显卡或主板显示输出能力。"
+  },
+  {
+    "rule_id": "special_storage_2tb",
+    "dimension": "special_requirements",
+    "level_1": "特殊功能",
+    "level_2": "大容量存储",
+    "keywords": ["2T硬盘", "2TB", "两T", "大容量硬盘", "很多素材", "很多游戏"],
+    "effects": {
+      "special_requirements": {
+        "storage_capacity_requirement": "2TB"
+      },
+      "constraints_for_selection_agent": {
+        "must_have_features": ["storage_capacity_2tb_or_more"],
+        "compatibility_checks": ["ssd_capacity_requirement"]
+      },
+      "cross_module_signals": {
+        "performance_signals": [
+          {
+            "signal": "large_storage_required",
+            "target": "performance",
+            "target_effect": "increase_ssd_capacity_priority",
+            "priority": "medium",
+            "reason": "用户明确需要大容量存储，应提高SSD或存储容量需求。"
+          }
+        ],
+        "price_signals": [
+          {
+            "signal": "storage_capacity_cost_driver",
+            "target": "price",
+            "target_effect": "increase_ssd_budget_priority",
+            "priority": "medium",
+            "reason": "2TB存储会增加SSD预算。"
+          }
+        ]
+      }
+    },
+    "description": "用户有大容量存储需求。"
+  }
+]

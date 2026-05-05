@@ -6,6 +6,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyc
 *$py.class
 .Python
 .venv/
@@ -26,6 +27,7 @@ htmlcov/
 # 本地会话库（运行时生成）
 data/pc_guide_sessions.sqlite
 data/*.sqlite
+debug_outputs/
 
 # IDE / OS
 .idea/

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import json
+import os
+from dataclasses import asdict, is_dataclass
+from pathlib import Path
 from typing import Any
 
 from pc_build_agent.agents.output_render import build_jd_links, render_final_markdown
@@ -11,6 +15,59 @@ from pc_build_agent.models.schemas import RecommendRequest, RecommendResponse, R
 from pc_build_agent.services.deepseek_client import get_client
 from pc_build_agent.services.product_repository import get_product_repository
 from pc_build_agent.services.session_store import get_session_store
+
+
+def _debug_enabled() -> bool:
+    return os.getenv("PC_GUIDE_DEBUG", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _debug_output_dir() -> Path:
+    path = _project_root() / "debug_outputs"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _to_jsonable(obj):
+    if obj is None:
+        return None
+    if isinstance(obj, (str, int, float, bool)):
+        return obj
+    if isinstance(obj, Path):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {str(k): _to_jsonable(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple, set)):
+        return [_to_jsonable(v) for v in obj]
+    if hasattr(obj, "model_dump"):
+        return _to_jsonable(obj.model_dump())
+    if hasattr(obj, "dict"):
+        return _to_jsonable(obj.dict())
+    if is_dataclass(obj):
+        return _to_jsonable(asdict(obj))
+    if hasattr(obj, "__dict__"):
+        return _to_jsonable(obj.__dict__)
+    return str(obj)
+
+
+def _write_debug_json(filename: str, payload):
+    if not _debug_enabled():
+        return
+    path = _debug_output_dir() / filename
+    path.write_text(
+        json.dumps(_to_jsonable(payload), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def _write_debug_text(filename: str, text: str):
+    if not _debug_enabled():
+        return
+    path = _debug_output_dir() / filename
+    path.write_text(text or "", encoding="utf-8")
 
 
 def _debug_llm_payload(trace: list[dict[str, Any]] | None, enabled: bool) -> dict[str, Any] | None:
@@ -37,6 +94,19 @@ def _merge_transcript(turns: list) -> str:
     return "\n".join(lines).strip()
 
 
+def _requirement_profile_payload(parsed: Any, transcript: str) -> dict[str, Any]:
+    requirement_profile = None
+    if hasattr(parsed, "__dict__"):
+        requirement_profile = parsed.__dict__.get("requirement_profile")
+    if requirement_profile is None:
+        requirement_profile = getattr(parsed, "requirement_profile", None)
+    return {
+        "raw_input": transcript,
+        "parsed": parsed,
+        "requirement_profile": requirement_profile,
+    }
+
+
 def recommend(req: RecommendRequest) -> RecommendResponse:
     store = get_session_store()
     repo = get_product_repository()
@@ -60,6 +130,14 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
         parsed = safe_parse(transcript, client=client, trace_sink=trace)
     except Exception as exc:  # noqa: BLE001
         msg = f"需求理解失败：{exc}"
+        _write_debug_json("latest_trace.json", trace or [])
+        _write_debug_json(
+            "latest_requirement_profile.json",
+            {"raw_input": transcript, "parsed": None, "requirement_profile": None, "error": msg},
+        )
+        _write_debug_json("latest_selection_debug.json", {})
+        _write_debug_json("latest_validation_debug.json", {})
+        _write_debug_text("latest_final_output.md", msg)
         store.append_message(sid, "assistant", msg, meta={"type": "error"})
         return RecommendResponse(
             code=1,
@@ -72,36 +150,31 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
             ),
         )
 
-    if parsed.need_clarification:
-        q = parsed.clarification_question or "可以再补充一下预算区间和主要用途吗？是否需要显示器？"
-        store.append_message(sid, "assistant", q, meta={"type": "clarification", "missing": parsed.missing_fields})
-        return RecommendResponse(
-            code=0,
-            message="need_clarification",
-            data=RecommendResponseData(
-                need_clarification=True,
-                clarification_question=q,
-                missing_fields=list(parsed.missing_fields or []),
-                clarification_cards=list(parsed.clarification_cards or []),
-                session_id=sid,
-                weights=dict(parsed.weights or {}),
-                weights_explanation=parsed.explanation,
-                requirement_summary=summarize_requirements(parsed),
-                debug_llm=_debug_llm_payload(trace, debug_on),
-            ),
-        )
-
     pool = repo.load()
     sel = retrieve_candidates(parsed, pool)
+    _write_debug_json("latest_trace.json", trace or [])
+    _write_debug_json("latest_requirement_profile.json", _requirement_profile_payload(parsed, transcript))
+    selection_debug = getattr(sel, "debug", None)
+    if selection_debug is None and hasattr(sel, "__dict__"):
+        selection_debug = sel.__dict__.get("debug")
+    _write_debug_json("latest_selection_debug.json", selection_debug or {})
+
     outcome = validate_and_select(parsed, sel.sorted_by_category)
+    validation_debug = getattr(outcome, "debug", None)
+    if validation_debug is None and hasattr(outcome, "__dict__"):
+        validation_debug = outcome.__dict__.get("debug")
+    _write_debug_json("latest_validation_debug.json", validation_debug or {})
 
     md = render_final_markdown(parsed, outcome, polish=False)
+    _write_debug_text("latest_final_output.md", md)
 
     store.append_message(sid, "assistant", md[:12000], meta={"type": "recommendation", "status": outcome.status})
 
     reason_lines: list[str] = []
     if parsed.explanation:
         reason_lines.append(parsed.explanation)
+    if parsed.missing_fields:
+        reason_lines.append("待补充信息：" + "、".join(parsed.missing_fields))
 
     compat_notes = list((outcome.compatibility_check or {}).get("warnings") or [])
     risk_notes = list((outcome.risk_check or {}).get("warnings") or [])

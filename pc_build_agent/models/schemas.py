@@ -211,6 +211,8 @@ class ParsedRequirements(BaseModel):
     next_action: str | None = None
     clarification_cards: list[ClarificationCard] = Field(default_factory=list)
     requirements: RequirementsModel = Field(default_factory=RequirementsModel)
+    capability_profile: dict[str, Any] = Field(default_factory=dict)
+    selection_context: dict[str, Any] = Field(default_factory=dict)
     weights: dict[str, float] = Field(default_factory=dict)
     explanation: str = ""
 
@@ -252,6 +254,10 @@ class ProductRecord(BaseModel):
     price: float
     jd_url: str | None = None
     tags: list[str] = Field(default_factory=list)
+    specs: dict[str, Any] = Field(default_factory=dict)
+    component_type: str | None = None
+    brand: str | None = None
+    current_price: float | None = None
 
 
 class BuildLine(BaseModel):

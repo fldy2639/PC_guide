@@ -49,8 +49,13 @@ class PerformanceOutput(BaseModel):
     secondary_usage: list[str] = Field(default_factory=list)
     performance_summary: str = ""
     performance_focus: list[str] = Field(default_factory=list)
+    capabilities: list[str] = Field(default_factory=list)
     component_priority: list[ComponentPriorityItem] = Field(default_factory=list)
+    reference_component_weights: dict[str, int] = Field(default_factory=dict)
+    capability_profile_ids: list[str] = Field(default_factory=list)
     hardware_constraints: dict[str, str] = Field(default_factory=dict)
+    extra_performance_constraints: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
     missing_information: list[str] = Field(default_factory=list)
     performance_targets: dict[str, Any] = Field(default_factory=dict)
 

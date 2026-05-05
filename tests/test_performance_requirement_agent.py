@@ -97,6 +97,51 @@ class PerformanceRequirementAgentTest(unittest.TestCase):
         self.assertEqual(updated_gaming["hardware_constraints"]["network"], "需要稳定WiFi或有线网络条件")
         self.assertNotIn("无线网络稳定性", updated_office["performance_focus"])
 
+    def test_capability_profiles_add_focus_for_aaa_gaming(self) -> None:
+        performance = self.agent.analyze("我想玩黑神话，预算6000")["performance"]
+
+        self.assertIn("aaa_gaming", performance["capability_profile_ids"])
+        self.assertGreaterEqual(performance["reference_component_weights"]["gpu"], 5)
+        self.assertGreaterEqual(performance["reference_component_weights"]["cpu"], 4)
+        self.assertGreaterEqual(performance["reference_component_weights"]["cooling"], 4)
+        self.assertGreaterEqual(performance["reference_component_weights"]["psu"], 4)
+        self.assertIn("high_graphics_performance", performance["capabilities"])
+
+    def test_capability_profiles_add_focus_for_ai_training_and_local_llm(self) -> None:
+        performance = self.agent.analyze("我要 AI 训练和本地大模型，预算12000")["performance"]
+
+        self.assertIn("local_llm_inference", performance["capability_profile_ids"])
+        self.assertIn("ai_training", performance["capability_profile_ids"])
+        self.assertGreaterEqual(performance["reference_component_weights"]["gpu"], 5)
+        self.assertGreaterEqual(performance["reference_component_weights"]["ram"], 5)
+        self.assertGreaterEqual(performance["reference_component_weights"]["psu"], 4)
+        self.assertIn("high_vram_capacity", performance["capabilities"])
+
+    def test_capability_profiles_do_not_break_unmatched_output(self) -> None:
+        performance = self.agent.analyze("帮我配一台普通电脑")["performance"]
+
+        self.assertIn("capabilities", performance)
+        self.assertIn("reference_component_weights", performance)
+        self.assertIsInstance(performance["capabilities"], list)
+        self.assertIsInstance(performance["reference_component_weights"], dict)
+
+    def test_llm_failure_falls_back_to_rule_only_analysis(self) -> None:
+        class BrokenLlm:
+            api_key = "fake-key"
+
+            def chat_json(self, messages, step):  # noqa: ANN001
+                raise OSError("dns failure")
+
+            def chat_text(self, messages, temperature=0.2, step="chat_text"):  # noqa: ANN001
+                raise OSError("dns failure")
+
+        agent = PerformanceRequirementAgent(llm=BrokenLlm())
+        performance = agent.analyze("主要玩CS2，偶尔直播")["performance"]
+
+        self.assertIn("fps_esports", performance["secondary_usage"])
+        self.assertIn("game_streaming", performance["secondary_usage"])
+        self.assertTrue(performance["performance_summary"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from pc_build_agent.schemas.appearance_schema import AppearanceAgentOutput, AppearanceOutput
+from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 
 class AppearanceRequirementAgent:
@@ -72,15 +73,27 @@ class AppearanceRequirementAgent:
         "appearance_priority": "unknown",
     }
 
-    def __init__(self, rule_path: str | Path | None = None, llm: Any | None = None):
-        default_rule_path = Path(__file__).resolve().parents[1] / "rules" / "appearance_rules.json"
-        self.rule_path = Path(rule_path or default_rule_path)
-        self.rules = self.load_rules(self.rule_path)
+    def __init__(
+        self,
+        rule_path: str | Path | None = None,
+        llm: Any | None = None,
+        knowledge_repo: RequirementKnowledgeRepository | None = None,
+    ):
+        self.rule_path = Path(rule_path) if rule_path is not None else None
+        if self.rule_path is not None:
+            self.rules = self.load_rules(self.rule_path)
+        else:
+            repo = knowledge_repo or RequirementKnowledgeRepository()
+            self.rules = self.load_rule_items(repo.get_rules("appearance"))
         self.llm = llm
 
     def load_rules(self, rule_path: Path) -> list[dict]:
         with rule_path.open("r", encoding="utf-8") as f:
-            return json.load(f)
+            return self.load_rule_items(json.load(f))
+
+    @staticmethod
+    def load_rule_items(raw: Any) -> list[dict]:
+        return list(raw or [])
 
     def normalize_text(self, text: str) -> str:
         return text.strip().lower()

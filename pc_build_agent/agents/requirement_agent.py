@@ -10,9 +10,10 @@ from pc_build_agent.agents.price_requirement_agent import PriceRequirementAgent
 from pc_build_agent.agents.requirement_orchestrator import RequirementOrchestrator
 from pc_build_agent.models.schemas import ParsedRequirements
 from pc_build_agent.services.deepseek_client import DeepSeekClient, get_client
+from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 
-SYSTEM_PROMPT = """你是一名专业的装机需求分析助手。你的任务是从对话文本中提取结构化装机需求。
+SYSTEM_PROMPT = """你是一名专业的装机需求分析助手。你的任务是从对话文本中提取结构化装机需求，并直接产出可供下游选配模块消费的结果。
 
 对话文本包含多轮「用户 / 助手」消息合并而成；请以**最后一次用户诉求为准**，并兼顾前文补充信息。
 
@@ -36,19 +37,15 @@ SYSTEM_PROMPT = """你是一名专业的装机需求分析助手。你的任务�
 - 强调白色海景房/RGB -> 提高 appearance。
 - 静音/小机箱等可归入 other。
 
-追问规则（最多追问一次）：
-- 缺预算或缺用途 -> need_clarification=true。
-- 「整套预算」但不清楚是否包含显示器 -> need_clarification=true。
-- 明显冲突（例如极低预算 + 4K 高画质 3A）-> need_clarification=true。
-
-卡片式追问 clarification_cards（可选但推荐）：
-- 当 need_clarification=true 时，尽量输出 1~3 张卡片，让用户一键选择。
-- 每张卡包含：id、title、multi_select、options[{value,label}]。
-- 示例：预算卡片给 3~5 个区间；显示器卡片给「只要主机/包含显示器/暂不确定」。
+输出原则：
+- 不要触发追问中断，下游必须能继续执行。
+- 即使信息不完整，也要基于已有文本给出最合理的结构化推断。
+- 不确定的信息写入 missing_fields，并保持 need_clarification=false。
+- clarification_question 设为 null，clarification_cards 设为空数组。
 
 输出必须是 JSON（不要 Markdown），字段：
 {
-  "need_clarification": boolean,
+  "need_clarification": false,
   "clarification_question": string | null,
   "missing_fields": string[],
   "next_action": string | null,
@@ -163,9 +160,14 @@ def _flatten_other_result_for_price(other_result: dict[str, Any]) -> dict[str, A
     }
 
 
-def enrich_other(parsed: ParsedRequirements, transcript: str, client: DeepSeekClient | None = None) -> ParsedRequirements:
+def enrich_other(
+    parsed: ParsedRequirements,
+    transcript: str,
+    client: DeepSeekClient | None = None,
+    knowledge_repo: RequirementKnowledgeRepository | None = None,
+) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
-    agent = OtherRequirementAgent(llm=client)
+    agent = OtherRequirementAgent(llm=client, knowledge_repo=knowledge_repo)
     result = agent.analyze(user_text)
     other_result = dict(result.get("other") or {})
     parsed.__dict__["_other_agent_result"] = other_result
@@ -214,9 +216,14 @@ def enrich_other(parsed: ParsedRequirements, transcript: str, client: DeepSeekCl
     return parsed
 
 
-def enrich_appearance(parsed: ParsedRequirements, transcript: str, client: DeepSeekClient | None = None) -> ParsedRequirements:
+def enrich_appearance(
+    parsed: ParsedRequirements,
+    transcript: str,
+    client: DeepSeekClient | None = None,
+    knowledge_repo: RequirementKnowledgeRepository | None = None,
+) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
-    agent = AppearanceRequirementAgent(llm=client)
+    agent = AppearanceRequirementAgent(llm=client, knowledge_repo=knowledge_repo)
     result = agent.analyze(user_text)
     appearance = dict(parsed.requirements.appearance or {})
     appearance.update(result.get("appearance") or {})
@@ -230,9 +237,14 @@ def enrich_appearance(parsed: ParsedRequirements, transcript: str, client: DeepS
     return parsed
 
 
-def enrich_performance(parsed: ParsedRequirements, transcript: str, client: DeepSeekClient | None = None) -> ParsedRequirements:
+def enrich_performance(
+    parsed: ParsedRequirements,
+    transcript: str,
+    client: DeepSeekClient | None = None,
+    knowledge_repo: RequirementKnowledgeRepository | None = None,
+) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
-    agent = PerformanceRequirementAgent(llm=client)
+    agent = PerformanceRequirementAgent(llm=client, knowledge_repo=knowledge_repo)
     result = agent.analyze(user_text)
     perf = dict((parsed.requirements.performance or {}))
     perf.update(result.get("performance") or {})
@@ -305,9 +317,14 @@ def enrich_performance(parsed: ParsedRequirements, transcript: str, client: Deep
     return parsed
 
 
-def enrich_price(parsed: ParsedRequirements, transcript: str, client: DeepSeekClient | None = None) -> ParsedRequirements:
+def enrich_price(
+    parsed: ParsedRequirements,
+    transcript: str,
+    client: DeepSeekClient | None = None,
+    knowledge_repo: RequirementKnowledgeRepository | None = None,
+) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
-    agent = PriceRequirementAgent(llm=client)
+    agent = PriceRequirementAgent(llm=client, knowledge_repo=knowledge_repo)
     other_agent_result = parsed.__dict__.get("_other_agent_result")
     if isinstance(other_agent_result, dict):
         other_payload = _flatten_other_result_for_price(other_agent_result)
@@ -427,36 +444,48 @@ def coerce_defaults(parsed: ParsedRequirements) -> ParsedRequirements:
     return parsed
 
 
+def finalize_for_selection(parsed: ParsedRequirements) -> ParsedRequirements:
+    """第一层只保留缺失信息提示，不再阻断第二层选配流程。"""
+    parsed.need_clarification = False
+    parsed.clarification_question = None
+    parsed.clarification_cards = []
+    if parsed.next_action == "clarify":
+        parsed.next_action = "proceed_to_selection"
+    return coerce_defaults(parsed)
+
+
 def safe_parse(
     transcript: str,
     client: DeepSeekClient | None = None,
     trace_sink: list[dict[str, Any]] | None = None,
 ) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
+    knowledge_repo = RequirementKnowledgeRepository()
     orchestrator = RequirementOrchestrator(
-        performance_agent=PerformanceRequirementAgent(llm=client),
-        appearance_agent=AppearanceRequirementAgent(llm=client),
-        price_agent=PriceRequirementAgent(llm=client),
-        other_agent=OtherRequirementAgent(llm=client),
+        performance_agent=PerformanceRequirementAgent(llm=client, knowledge_repo=knowledge_repo),
+        appearance_agent=AppearanceRequirementAgent(llm=client, knowledge_repo=knowledge_repo),
+        price_agent=PriceRequirementAgent(llm=client, knowledge_repo=knowledge_repo),
+        other_agent=OtherRequirementAgent(llm=client, knowledge_repo=knowledge_repo),
+        knowledge_repo=knowledge_repo,
     )
 
     try:
         profile_output = orchestrator.analyze(user_text)
         parsed = LegacyRequirementAdapter.from_requirement_profile(profile_output)
-        parsed = coerce_defaults(parsed)
+        parsed = finalize_for_selection(parsed)
         parsed.__dict__["requirement_profile"] = profile_output.get("requirement_profile", {})
         return parsed
     except Exception:
         parsed = parse_requirements(transcript, client=client, trace_sink=trace_sink)
-        parsed = enrich_appearance(parsed, transcript, client=client)
-        parsed = enrich_performance(parsed, transcript, client=client)
-        parsed = enrich_other(parsed, transcript, client=client)
+        parsed = enrich_appearance(parsed, transcript, client=client, knowledge_repo=knowledge_repo)
+        parsed = enrich_performance(parsed, transcript, client=client, knowledge_repo=knowledge_repo)
+        parsed = enrich_other(parsed, transcript, client=client, knowledge_repo=knowledge_repo)
         other_agent_result = parsed.__dict__.get("_other_agent_result")
         if isinstance(other_agent_result, dict):
             other_payload = _flatten_other_result_for_price(other_agent_result)
         else:
             other_payload = _model_to_dict(parsed.requirements.other)
-        price_agent = PriceRequirementAgent(llm=client)
+        price_agent = PriceRequirementAgent(llm=client, knowledge_repo=knowledge_repo)
         price_result = price_agent.analyze(
             user_text=user_text,
             performance_result={"performance": dict(parsed.requirements.performance or {})},
@@ -475,4 +504,4 @@ def safe_parse(
             "selection_context": {},
             "missing_information": list(parsed.missing_fields or []),
         }
-        return coerce_defaults(parsed)
+        return finalize_for_selection(parsed)

@@ -1,294 +1,341 @@
-# 京东装机导购 Agent（PC_guide）
+# PC Guide
 
-面向装机场景的 **自然语言导购**：解析预算与偏好 → 从 Mock 商品池召回候选 → **代码层做兼容性 / 功耗 / 预算校验与降配** → 输出清单与京东链接占位。**可选 DeepSeek** 完成需求结构化理解。
+面向中文装机对话场景的 PC 需求理解与配件推荐服务。
 
----
+当前仓库已经具备一条可运行的端到端链路：
 
-## 功能概览
+`用户自然语言 -> RequirementProfile/兼容层 -> 候选召回 -> 兼容性与预算校验 -> 最终清单输出`
 
+它同时包含两层能力：
 
-| 能力     | 说明                                                                          |
-| ------ | --------------------------------------------------------------------------- |
-| 需求理解   | 调用 DeepSeek Chat Completions（JSON），抽取预算、用途、显示器、指定配件、权重等                     |
-| 追问（V1） | 至多一轮追问；支持结构化追问卡片字段 `clarification_cards`，前端卡片勾选回填                           |
-| 召回     | 按品类打分排序（权重模拟装机取舍），每品类 Top3 预览                                               |
-| 校验     | **确定性规则**：CPU–主板、DDR、电源瓦数、360 冷排与机箱等；超预算策略触发降配                              |
-| 会话     | SQLite 持久化多轮对话，请求携带 `session_id` 拼接上下文                                      |
-| 前端     | 京东红白风格静态导购页（`frontend/`，**单独端口**打开）+ 后端 Swagger `/docs`                     |
-| 调试     | `debug_llm` / `PC_GUIDE_DEBUG_LLM` 返回模型请求与响应轨迹（含 `reasoning_content` 若上游返回） |
+1. 第一层：需求理解
+   - `PerformanceRequirementAgent`
+   - `AppearanceRequirementAgent`
+   - `PriceRequirementAgent`
+   - `OtherRequirementAgent`
+   - `RequirementOrchestrator`
+2. 第二层：配件选择
+   - `selection.py`
+   - `validation_engine.py`
+   - `output_render.py`
 
+第一层负责理解需求，不直接决定具体硬件型号；第二层才负责候选排序、兼容性校验和预算收敛。
 
----
+## 当前状态
 
-## 系统架构
+- 默认 API 入口是 [pc_build_agent/main.py](/Users/xieshengyuan/Downloads/PC_guide-main/pc_build_agent/main.py)。
+- 默认业务编排入口是 [pc_build_agent/pipeline/orchestrator.py](/Users/xieshengyuan/Downloads/PC_guide-main/pc_build_agent/pipeline/orchestrator.py)。
+- `safe_parse()` 现在优先走新的 `RequirementOrchestrator -> RequirementProfile -> LegacyRequirementAdapter` 链路。
+- 如果新链路异常，才会 fallback 到旧的 `parse_requirements + enrich_*` 兼容逻辑。
+- 商品数据默认读取 `pc_build_agent/database/hardware_catalog/v1/data/`。
+- `pc_build_agent/data/products.json` 仍保留，更多偏向历史兼容/脚本输入，不是当前默认主数据源。
 
-下图描述「单次推荐请求」分层关系：**前端与后端已分离**，通过 `fetch` 跨域调用 API（需在 `PC_GUIDE_CORS_ORIGINS` 中放行前端 Origin）。
+## 仓库结构
 
-```mermaid
-flowchart TB
-  subgraph Client["客户端（另一端口或 CDN）"]
-    WEB["frontend/\n静态导购页"]
-  end
-
-  subgraph API["FastAPI — pc_build_agent.main"]
-    R["POST /api/pc-build-agent/recommend"]
-    H["GET /health"]
-    CORS["CORSMiddleware\n白名单 Origin"]
-  end
-
-  subgraph Pipeline["流水线 orchestrator"]
-    OR["recommend()"]
-  end
-
-  subgraph Agents["Agent / 逻辑模块"]
-    RA["requirement_agent\nDeepSeek → ParsedRequirements"]
-    SA["selection\n打分召回 TopN"]
-    VA["validation_engine\n规则 + 降配"]
-    OA["output_render\nMarkdown"]
-  end
-
-  subgraph Services["服务"]
-    DS["deepseek_client"]
-    PR["product_repository\nproducts.json"]
-    SS["session_store\nSQLite"]
-    RL["rules.json +\nhardware 解析"]
-  end
-
-  WEB -->|HTTPS + CORS| R
-  R --> OR
-  OR --> SS
-  OR --> RA --> DS
-  OR --> PR
-  RA --> SA
-  SA --> VA
-  VA --> RL
-  VA --> PR
-  OR --> OA
-```
-
-
-
----
-
-## 技术流程（推荐链路）
-
-从用户输入到响应数据的端到端步骤：
-
-```mermaid
-sequenceDiagram
-  participant U as 用户 / 前端
-  participant API as FastAPI
-  participant OR as orchestrator
-  participant SS as session_store
-  participant LLM as DeepSeek API
-  participant SEL as selection
-  participant VAL as validation_engine
-  participant PR as products.json
-
-  U->>API: POST /recommend(user_query, session_id?, debug_llm?)
-  API->>OR: recommend(req)
-  OR->>SS: append user message / ensure session
-  OR->>SS: list_turns → transcript
-  OR->>LLM: requirement_parse(JSON mode)
-  LLM-->>OR: structured requirements / clarification
-
-  alt need_clarification
-    OR-->>U: clarification + optional cards + debug_llm?
-  else 继续选配
-    OR->>PR: load pool
-    OR->>SEL: retrieve_candidates
-    SEL-->>OR: sorted_by_category + top3 preview
-    OR->>VAL: validate_and_select(rules + downgrade)
-    VAL-->>OR: final_build / failed_with_alternative
-    OR->>OR: render markdown
-    OR-->>U: final_build + notes + debug_llm?
-  end
-```
-
-
-
-**关键点**
-
-1. **LLM 只承担「需求理解」**：结构化约束与权重；不替代兼容性终审。
-2. **校验与预算**：由 `validation_engine` + `rules.json` + 名称解析完成；超过预算上限一定比例会触发循环降配，禁止直接输出「严重超标」作为最终方案。
-3. **品类**：内部统一中文品类（处理器、显卡、主板……），Mock 数据见 `pc_build_agent/data/products.json`。
-
----
-
-## 目录结构
-
-```
-PC_guide/
-├── README.md                          # 本文件
+```text
+PC_guide-main/
+├── README.md
 ├── requirements.txt
-├── .env.example                       # 环境变量示例（勿提交真实 .env）
-├── frontend/                          # 京东风格导购前端（静态资源，单独 http.server / CDN）
+├── requirements-dev.txt
+├── .env.example
+├── Dockerfile.api
+├── docker-compose.yml
+├── frontend/
 │   ├── index.html
-│   ├── config.js                      # 配置 PC_GUIDE_API_BASE（后端根 URL）
 │   ├── app.js
-│   └── styles.css
-├── scripts/
-│   └── generate_mock_products.py      # 生成 Mock 商品 JSON（每类约 20 条）
+│   ├── styles.css
+│   ├── config.js
+│   └── Dockerfile
+├── docs/
+│   ├── deployment_runbook.md
+│   ├── engineering_guide.md
+│   ├── requirement_knowledge_architecture.md
+│   └── hardware_database_selection_architecture.md
 ├── pc_build_agent/
-│   ├── main.py                        # FastAPI 入口：仅 JSON API + CORS
-│   ├── config.py                      # pydantic-settings 读取环境变量
-│   ├── models/schemas.py              # 请求/响应 Pydantic 模型
-│   ├── pipeline/orchestrator.py       # 推荐编排与 debug_llm 组装
+│   ├── main.py
+│   ├── config.py
+│   ├── pipeline/
 │   ├── agents/
-│   │   ├── requirement_agent.py       # DeepSeek 需求解析 prompt
-│   │   ├── selection.py               # 打分召回
-│   │   ├── validation_engine.py      # 兼容 / 功耗 / 预算降配
-│   │   ├── hardware.py                # 名称解析辅助
-│   │   └── output_render.py           # Markdown 输出
 │   ├── services/
-│   │   ├── deepseek_client.py        # OpenAI 兼容 /v1/chat/completions
-│   │   ├── session_store.py          # SQLite 会话
-│   │   └── product_repository.py     # 加载 JSON 商品池
-│   └── data/
-│       ├── products.json             # Mock 商品池（可替换为爬取结果）
-│       └── rules.json                # 规则库（CPU–主板、功耗等）
-├── data/                              # 运行时 SQLite 默认目录（见配置）
-│   └── pc_guide_sessions.sqlite       # 本地生成，默认不入库见 .gitignore
-├── 京东装机导购agent研发设计文档.md
-└── 京东装机商品数据爬取需求文档.md
+│   ├── models/
+│   ├── schemas/
+│   ├── rules/
+│   ├── data/
+│   └── database/
+├── scripts/
+└── tests/
 ```
 
----
+## 技术链路
 
-## 技术栈
+### 1. API 链路
 
+```text
+POST /api/pc-build-agent/recommend
+-> pipeline.orchestrator.recommend()
+-> requirement_agent.safe_parse()
+-> RequirementOrchestrator
+-> selection.retrieve_candidates()
+-> validation_engine.validate_and_select()
+-> output_render.render_final_markdown()
+```
 
-| 层级       | 选型                                                     |
-| -------- | ------------------------------------------------------ |
-| 运行时      | Python 3.10+（建议）                                       |
-| Web      | FastAPI、Uvicorn                                        |
-| HTTP 客户端 | httpx                                                  |
-| 配置       | pydantic-settings、python-dotenv                        |
-| LLM      | DeepSeek（OpenAI 兼容 API，`response_format: json_object`） |
-| 持久化      | sqlite3（会话消息）                                          |
-| 前端       | 原生 HTML/CSS/JS，Marked CDN（Markdown 渲染）                 |
+### 2. 需求理解链路
 
+```text
+user_text
+-> Performance / Appearance / Other / Price.extract_budget
+-> apply_other_signals supplement
+-> Price.analyze(...)
+-> RequirementProfile
+-> LegacyRequirementAdapter
+-> ParsedRequirements
+```
 
----
+### 3. 规则优先级
+
+项目遵循仓库内 AGENTS.md 的约束：
+
+- 确定性规则优先于 LLM。
+- Requirement understanding 不直接做 SKU 推荐。
+- 第一层输出以 `RequirementProfile` 为单一事实源。
+- LLM 只补充模糊语义，不覆盖已命中的硬约束。
+
+## 运行前提
+
+### Python
+
+- 需要 `Python 3.10+`
+- 推荐 `Python 3.11`
+
+注意：仓库里大量使用了 `str | None` 这类 3.10+ 语法，`Python 3.8/3.9` 不能稳定运行。
+
+### 外部依赖
+
+- API 全流程默认依赖 DeepSeek 兼容接口。
+- 如果未配置 `DEEPSEEK_API_KEY`，`/recommend` 的真实解析流程无法完成。
+- 单元测试设计目标是不依赖真实 LLM，但需要先安装开发依赖。
 
 ## 快速开始
 
-### 1. 克隆与虚拟环境
+### 1. 安装依赖
 
 ```bash
-git clone https://github.com/fldy2639/PC_guide.git
-cd PC_guide
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# Linux / macOS
+python3.11 -m venv .venv
 source .venv/bin/activate
-
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
-### 2. 环境变量
+如果本机没有 `python3.11`，至少请使用 `python3.10`。
 
-复制 `.env.example` 为 `.env`，填写 `**DEEPSEEK_API_KEY**`。可选：`DEEPSEEK_MODEL`、`PC_GUIDE_DEBUG_LLM=true` 等。
-
-### 3. Mock 商品数据（可选）
-
-仓库已自带 `pc_build_agent/data/products.json`。若需重新生成：
+### 2. 配置环境变量
 
 ```bash
-python scripts/generate_mock_products.py
+cp .env.example .env
 ```
 
-### 4. 启动服务（前后端分离）
-
-**终端 A — 后端 API（默认 8000）**：在项目根目录执行：
+最少需要补上：
 
 ```bash
-python -m uvicorn pc_build_agent.main:app --host 127.0.0.1 --port 8000
+DEEPSEEK_API_KEY=your-real-key
 ```
 
-**终端 B — 前端静态站（示例 5173）**：
+### 3. 启动后端
 
 ```bash
-cd frontend
-python -m http.server 5173
+python3 -m uvicorn pc_build_agent.main:app --host 0.0.0.0 --port 8000
 ```
 
-在浏览器打开 `http://127.0.0.1:5173/`（或 `http://localhost:5173/`）。若修改端口，请同步把该 Origin 写入 `.env` 的 `PC_GUIDE_CORS_ORIGINS`，并把 `frontend/config.js` 里的 `PC_GUIDE_API_BASE` 指向后端 `http://127.0.0.1:8000`。
+### 4. 启动前端
 
+```bash
+python3 -m http.server 5173 --directory frontend
+```
 
-| URL                            | 说明                       |
-| ------------------------------ | ------------------------ |
-| `http://127.0.0.1:5173/`       | 导购前端（静态服务器）              |
-| `http://127.0.0.1:8000/`       | API 根 JSON 说明（不再返回 HTML） |
-| `http://127.0.0.1:8000/docs`   | Swagger API              |
-| `http://127.0.0.1:8000/health` | 健康检查                     |
+### 5. 打开页面
 
+- 前端页面：[http://127.0.0.1:5173](http://127.0.0.1:5173)
+- API 文档：[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- 健康检查：[http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 
----
+## 端到端自检
 
-## 配置说明（环境变量）
+### 1. 健康检查
 
+```bash
+curl http://127.0.0.1:8000/health
+```
 
-| 变量                       | 含义                  | 默认                                    |
-| ------------------------ | ------------------- | ------------------------------------- |
-| `DEEPSEEK_API_KEY`       | DeepSeek 密钥         | 空（必填否则解析报错）                           |
-| `DEEPSEEK_BASE_URL`      | API 基址              | `https://api.deepseek.com`            |
-| `DEEPSEEK_MODEL`         | 模型名                 | `deepseek-chat`                       |
-| `PC_GUIDE_DB_PATH`       | 会话 SQLite 路径        | `./data/pc_guide_sessions.sqlite`     |
-| `PC_GUIDE_PRODUCTS_PATH` | 商品 JSON             | `./pc_build_agent/data/products.json` |
-| `PC_GUIDE_RULES_PATH`    | 规则 JSON             | `./pc_build_agent/data/rules.json`    |
-| `PC_GUIDE_DEBUG_LLM`     | 是否在响应中带调试轨迹         | `false`                               |
-| `PC_GUIDE_CORS_ORIGINS`  | 允许跨域的前端 Origin，逗号分隔 | 见 `.env.example` 中本地默认列表              |
+期望返回：
 
+```json
+{"status":"ok"}
+```
 
----
+### 2. 推荐接口冒烟
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/pc-build-agent/recommend \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "user_query": "预算8000，只要主机，主要写代码，偶尔玩3A，白色机箱，安静一点",
+    "debug_llm": false
+  }'
+```
+
+如果环境变量正确，应该返回：
+
+- `code = 0`
+- `data.session_id`
+- `data.requirement_summary`
+- `data.candidates_preview`
+- `data.recommendation_markdown`
+
+如果缺少 API Key，通常会得到解析失败提示，这属于环境问题，不是接口路由问题。
+
+### 3. 单元测试
+
+```bash
+python3 -m pytest -q
+```
+
+说明：
+
+- `pytest` 不在运行时依赖中，已拆到 `requirements-dev.txt`。
+- 如果你只想部署服务，不需要安装开发依赖。
+
+## 环境变量
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | DeepSeek/OpenAI 兼容网关密钥 | 空 |
+| `DEEPSEEK_BASE_URL` | LLM API 地址 | `https://api.deepseek.com` |
+| `DEEPSEEK_MODEL` | 模型名 | `deepseek-chat` |
+| `PC_GUIDE_DB_PATH` | SQLite 会话文件路径 | `./data/pc_guide_sessions.sqlite` |
+| `PC_GUIDE_HARDWARE_CATALOG_PATH` | 当前默认商品目录 | `./pc_build_agent/database/hardware_catalog/v1/data` |
+| `PC_GUIDE_RULES_PATH` | 第二层兼容校验规则 | `./pc_build_agent/data/rules.json` |
+| `PC_GUIDE_DEBUG_LLM` | 是否返回 LLM 调试轨迹 | `false` |
+| `PC_GUIDE_CORS_ORIGINS` | 允许访问 API 的前端 Origin 列表 | 本地常见端口白名单 |
+
+补充说明：
+
+- `PC_GUIDE_PRODUCTS_PATH` 仍存在于配置模型里，但当前默认 `ProductRepository` 读取的是 hardware catalog 目录。
+- 如果你要切回单文件商品池，请在代码或初始化参数里显式传入路径。
 
 ## API 摘要
 
 ### `POST /api/pc-build-agent/recommend`
 
-**Request（节选）**
+请求体示例：
 
 ```json
 {
-  "user_query": "我想配一台 6000-8000 元主机玩 3A，不要显示器。",
+  "user_query": "预算 6000 到 8000，只要主机，主要玩 3A",
   "session_id": null,
   "version": "v1",
   "debug_llm": false
 }
 ```
 
-**Response（节选）**
+响应重点字段：
 
-- `data.need_clarification === true`：追问文案、`clarification_cards`、`session_id`。  
-- 否则：`final_build`、`total_price`、`budget_check`、`risk_check`、`candidates_preview`（Top3）、`recommendation_markdown` 等。  
-- `data.debug_llm`：调试开启时出现（步骤内含 `request.messages` 与 `assistant_message.reasoning_content` 字段占位）。
+- `data.need_clarification`
+- `data.clarification_question`
+- `data.requirement_summary`
+- `data.candidates_preview`
+- `data.final_build`
+- `data.total_price`
+- `data.budget_check`
+- `data.compatibility_check`
+- `data.risk_check`
+- `data.recommendation_markdown`
 
----
+## 数据与规则
 
-## 前端 behavior
+### 第一层需求理解规则
 
-- 接口根地址由 `frontend/config.js` 中的 `window.PC_GUIDE_API_BASE` 决定，须与 `PC_GUIDE_CORS_ORIGINS` 一致配合（前端页面 Origin 必须在白名单内）。  
-- 勾选「调试」会向接口传 `debug_llm: true`（仍可配合服务端 `PC_GUIDE_DEBUG_LLM`）。  
-- 追问时在左侧展示可选卡片；`session_id` 存于 `sessionStorage`，多轮自动接续。
+主目录：
 
----
+- `pc_build_agent/database/requirement_knowledge/v1/`
 
-## 后续接入真实数据
+由 `RequirementKnowledgeRepository` 统一加载，优先级高于：
 
-参见 `**京东装机商品数据爬取需求文档.md`**：合规边界、字段与 V2 扩展对齐、更新频率与验收口径。将离线生成的标准化 JSON **替换或映射到** `PC_GUIDE_PRODUCTS_PATH` 指向的文件格式即可渐进接入（需同步品类枚举与校验字段）。
+- `pc_build_agent/rules/*.json`
 
----
+### 第二层硬件数据
+
+当前默认主目录：
+
+- `pc_build_agent/database/hardware_catalog/v1/data/`
+
+主要覆盖：
+
+- CPU
+- GPU
+- 主板
+- 内存
+- SSD
+- 散热
+- 电源
+- 机箱
+
+### 第二层兼容校验规则
+
+- `pc_build_agent/data/rules.json`
+
+用于名称正则 fallback 和部分历史兼容。
+
+## 上线部署
+
+仓库已经补了最基础的容器化文件：
+
+- [Dockerfile.api](/Users/xieshengyuan/Downloads/PC_guide-main/Dockerfile.api)
+- [frontend/Dockerfile](/Users/xieshengyuan/Downloads/PC_guide-main/frontend/Dockerfile)
+- [docker-compose.yml](/Users/xieshengyuan/Downloads/PC_guide-main/docker-compose.yml)
+
+推荐先看：
+
+- [docs/deployment_runbook.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/deployment_runbook.md)
+
+最简命令：
+
+```bash
+docker compose up --build
+```
+
+默认暴露：
+
+- 前端：`8080`
+- API：`8000`
+
+## 工程阅读建议
+
+如果你要继续开发，建议按这个顺序读：
+
+1. [docs/engineering_guide.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/engineering_guide.md)
+2. [pc_build_agent/main.py](/Users/xieshengyuan/Downloads/PC_guide-main/pc_build_agent/main.py)
+3. [pc_build_agent/pipeline/orchestrator.py](/Users/xieshengyuan/Downloads/PC_guide-main/pc_build_agent/pipeline/orchestrator.py)
+4. [pc_build_agent/agents/requirement_agent.py](/Users/xieshengyuan/Downloads/PC_guide-main/pc_build_agent/agents/requirement_agent.py)
+5. [docs/requirement_knowledge_architecture.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/requirement_knowledge_architecture.md)
+6. [docs/hardware_database_selection_architecture.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/hardware_database_selection_architecture.md)
+
+## 已知事实与边界
+
+- 这份仓库目前是“可运行的工程原型”，不是完全产品化的线上系统。
+- 当前没有鉴权、限流、结构化日志、APM、异步任务队列。
+- 会话持久化使用 SQLite，适合单实例部署或开发环境，不适合高并发多副本共享写入。
+- 前端是纯静态页，没有构建工具链，部署简单，但没有环境注入体系；生产环境一般通过改 `frontend/config.js` 或网关层注入 `window.PC_GUIDE_API_BASE`。
+
+## 配套文档
+
+- [docs/engineering_guide.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/engineering_guide.md)
+- [docs/deployment_runbook.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/deployment_runbook.md)
+- [docs/requirement_knowledge_architecture.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/requirement_knowledge_architecture.md)
+- [docs/hardware_database_selection_architecture.md](/Users/xieshengyuan/Downloads/PC_guide-main/docs/hardware_database_selection_architecture.md)
 
 ## 免责声明
 
-- 本项目为 **技术演示与学习**：前端红白配色仅为风格参考，**非京东官方产品**。  
-- Mock 价格与链接为占位；导购结论不构成购物承诺，以下单品详情页为准。  
-- 使用爬虫获取站点数据前须完成平台协议与法务评审；优先考虑京东开放平台等合法数据源。
-
----
-
-## 许可
-
-若未另行约定，代码仓库默认遵循仓库根目录许可证声明（如无 LICENSE 文件，使用前请自行补充）。
+- 本项目当前更偏工程研发与架构验证。
+- LLM 解析结果仅用于需求理解，不应被视作最终采购建议。
+- 如果接入真实商品数据，请先完成数据来源合规、字段清洗和价格更新策略设计。

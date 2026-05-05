@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pc_build_agent.models.schemas import ParsedRequirements, ProductRecord, SpecifiedPartModel
@@ -21,6 +21,32 @@ CATEGORY_COMPONENT_MAP = {
     "散热器": "cooling",
     "电源": "psu",
     "机箱": "case",
+}
+
+COMPONENT_KEY_ALIASES = {
+    "cpu": "cpu",
+    "处理器": "cpu",
+    "gpu": "gpu",
+    "显卡": "gpu",
+    "motherboard": "motherboard",
+    "主板": "motherboard",
+    "memory": "memory",
+    "ram": "memory",
+    "内存": "memory",
+    "ssd": "ssd",
+    "硬盘": "ssd",
+    "固态": "ssd",
+    "散热": "cooling",
+    "散热器": "cooling",
+    "cooling": "cooling",
+    "psu": "psu",
+    "电源": "psu",
+    "case": "case",
+    "机箱": "case",
+    "fan": "fan",
+    "风扇": "fan",
+    "monitor": "monitor",
+    "显示器": "monitor",
 }
 
 
@@ -55,6 +81,14 @@ def normalize_requirement_profile(input_obj: Any) -> dict[str, Any]:
 
     if hasattr(input_obj, "requirements"):
         req = input_obj.requirements
+        specified_parts = []
+        for sp in getattr(req, "specified_parts", []) or []:
+            if hasattr(sp, "model_dump"):
+                specified_parts.append(sp.model_dump())
+            elif hasattr(sp, "dict"):
+                specified_parts.append(sp.dict())
+            else:
+                specified_parts.append(dict(sp or {}))
         # TODO: remove this legacy fallback after all callers migrate to RequirementProfile.
         return {
             "performance": dict(getattr(req, "performance", {}) or {}),
@@ -63,6 +97,7 @@ def normalize_requirement_profile(input_obj: Any) -> dict[str, Any]:
             "other": _model_to_dict(getattr(req, "other", {}) or {}),
             "capability_profile": dict(getattr(input_obj, "capability_profile", {}) or {}),
             "selection_context": dict(getattr(input_obj, "selection_context", {}) or {}),
+            "specified_parts": specified_parts,
         }
 
     if isinstance(input_obj, dict):
@@ -73,6 +108,7 @@ def normalize_requirement_profile(input_obj: Any) -> dict[str, Any]:
             "other": dict(input_obj.get("other", {}) or {}),
             "capability_profile": dict(input_obj.get("capability_profile", {}) or {}),
             "selection_context": dict(input_obj.get("selection_context", {}) or {}),
+            "specified_parts": list(input_obj.get("specified_parts") or []),
         }
 
     return {
@@ -82,6 +118,7 @@ def normalize_requirement_profile(input_obj: Any) -> dict[str, Any]:
         "other": {},
         "capability_profile": {},
         "selection_context": {},
+        "specified_parts": [],
     }
 
 
@@ -106,8 +143,296 @@ def get_capability_profile(parsed_or_profile: Any) -> dict[str, Any]:
     return {}
 
 
+def normalize_component_key(value: Any) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    lowered = text.lower()
+    return COMPONENT_KEY_ALIASES.get(text, COMPONENT_KEY_ALIASES.get(lowered, lowered))
+
+
 def map_category_to_component(category: str) -> str | None:
     return CATEGORY_COMPONENT_MAP.get(category)
+
+
+def _component_key_for_weights(value: Any) -> str:
+    normalized = normalize_component_key(value)
+    if normalized == "memory":
+        return "ram"
+    return normalized
+
+
+def _infer_color_from_text(text: str) -> str | None:
+    lowered = text.lower()
+    if "white" in lowered or "白" in text:
+        return "white"
+    if "black" in lowered or "黑" in text:
+        return "black"
+    return None
+
+
+def get_product_field(product: ProductRecord, field: str) -> Any:
+    normalized_field = str(field or "").strip()
+    if not normalized_field:
+        return None
+    direct_attrs = {"sku_id", "category", "name", "price", "current_price", "brand", "component_type", "jd_url", "tags"}
+    if normalized_field in direct_attrs and hasattr(product, normalized_field):
+        return getattr(product, normalized_field)
+    if normalized_field in product.specs:
+        return product.specs.get(normalized_field)
+
+    aliases = {
+        "price": ["current_price", "price"],
+        "brand": ["brand"],
+        "name": ["name"],
+        "model": ["model", "name"],
+        "memory": ["memory_type"],
+        "memory_type": ["memory_type"],
+        "ddr": ["memory_type"],
+        "wifi": ["wifi_builtin"],
+        "wifi_builtin": ["wifi_builtin"],
+        "capacity": ["capacity_gb"],
+        "capacity_gb": ["capacity_gb"],
+        "vram": ["vram_gb"],
+        "vram_gb": ["vram_gb"],
+        "socket": ["socket"],
+        "form_factor": ["form_factor"],
+        "color": ["color"],
+        "case_style": ["case_style"],
+        "cooling_type": ["cooling_type"],
+        "wattage": ["wattage_w"],
+        "wattage_w": ["wattage_w"],
+        "gpu_length": ["gpu_length_mm"],
+        "gpu_length_mm": ["gpu_length_mm"],
+        "max_gpu_length": ["max_gpu_length_mm"],
+        "max_gpu_length_mm": ["max_gpu_length_mm"],
+    }
+    for candidate in aliases.get(normalized_field, []):
+        if hasattr(product, candidate):
+            value = getattr(product, candidate)
+            if value not in (None, "", []):
+                return value
+        if candidate in product.specs:
+            value = product.specs.get(candidate)
+            if value not in (None, "", []):
+                return value
+    if normalized_field == "color":
+        return product.specs.get("color") or _infer_color_from_text(product_search_text(product))
+    if normalized_field == "brand":
+        return product.brand or product.specs.get("brand")
+    if normalized_field == "model":
+        return product.specs.get("model") or product.name
+    if normalized_field == "price":
+        return product.current_price if product.current_price is not None else product.price
+    return None
+
+
+def product_search_text(product: ProductRecord) -> str:
+    chunks: list[str] = [
+        str(product.name or ""),
+        str(product.brand or ""),
+        str(product.category or ""),
+        str(product.component_type or ""),
+    ]
+    chunks.extend(str(tag) for tag in product.tags or [])
+    for value in (product.specs or {}).values():
+        if isinstance(value, list):
+            chunks.extend(str(item) for item in value)
+        else:
+            chunks.append(str(value))
+    return " ".join(chunks).lower()
+
+
+def _infer_components_from_text(text: str) -> set[str]:
+    lowered = str(text or "").lower()
+    inferred: set[str] = set()
+    if any(token in lowered for token in ["rtx", "gtx", "radeon", "geforce"]) or "rx" in lowered:
+        inferred.add("gpu")
+    if any(token in lowered for token in ["i3", "i5", "i7", "i9", "ryzen", "酷睿"]):
+        inferred.add("cpu")
+    if any(token in lowered for token in ["b650", "b760", "z790", "x670", "主板"]):
+        inferred.add("motherboard")
+    if any(token in lowered for token in ["ddr4", "ddr5", "内存", "32gb", "64gb", "16gb"]):
+        inferred.update({"memory", "motherboard"})
+    if any(token in lowered for token in ["ssd", "固态", "nvme"]):
+        inferred.add("ssd")
+    if any(token in lowered for token in ["电源", "金牌", "白金"]):
+        inferred.add("psu")
+    if re.search(r"\b\d{3,4}w\b", lowered):
+        inferred.add("psu")
+    if any(token in lowered for token in ["机箱", "海景房"]):
+        inferred.add("case")
+    if any(token in lowered for token in ["水冷", "风冷", "散热", "aio", "liquid", "air cooler"]):
+        inferred.add("cooling")
+    if any(token in lowered for token in ["wifi", "wi-fi", "无线"]):
+        inferred.add("motherboard")
+    if any(token in lowered for token in ["white", "白色", "白", "black", "黑色", "黑"]):
+        inferred.update({"case", "cooling", "gpu", "memory"})
+    if "rgb" in lowered or "argb" in lowered or "灯效" in lowered or "灯光" in lowered:
+        inferred.update({"case", "cooling", "gpu", "memory"})
+    return inferred
+
+
+def constraint_applies_to_product(constraint: Any, product: ProductRecord, category: str | None = None) -> bool:
+    product_component = normalize_component_key(product.component_type or product.category)
+    normalized_category = _normalize_spec_category(category or product.category or "")
+    if isinstance(constraint, dict):
+        target = constraint.get("component") or constraint.get("component_type")
+        target_category = constraint.get("category")
+        if target:
+            return normalize_component_key(target) == product_component
+        if target_category:
+            return _normalize_spec_category(str(target_category)) == normalized_category
+        return True
+    if isinstance(constraint, str):
+        inferred = _infer_components_from_text(constraint)
+        if not inferred:
+            return True
+        return product_component in inferred
+    return False
+
+
+def _coerce_bool(value: Any) -> Any:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    lowered = str(value or "").strip().lower()
+    if lowered in {"true", "yes", "1", "是"}:
+        return True
+    if lowered in {"false", "no", "0", "否"}:
+        return False
+    return value
+
+
+def _coerce_float(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def matches_structured_constraint(product: ProductRecord, constraint: dict) -> bool:
+    if not isinstance(constraint, dict):
+        return False
+    if not constraint_applies_to_product(constraint, product):
+        return False
+    if constraint.get("keyword"):
+        return matches_text_constraint(product, str(constraint.get("keyword") or ""))
+    if constraint.get("keywords"):
+        keywords = [str(item) for item in constraint.get("keywords") or [] if str(item).strip()]
+        return all(matches_text_constraint(product, keyword) for keyword in keywords)
+
+    field = str(constraint.get("field") or "").strip()
+    operator = str(constraint.get("operator") or "==").strip().lower()
+    value = constraint.get("value")
+    actual = get_product_field(product, field)
+
+    if operator == "exists":
+        return actual not in (None, "", [])
+    if operator == "not_exists":
+        return actual in (None, "", [])
+
+    actual_num = _coerce_float(actual)
+    target_num = _coerce_float(value)
+    actual_bool = _coerce_bool(actual)
+    target_bool = _coerce_bool(value)
+
+    if operator in {"==", "!=", ">=", "<=", ">", "<"} and actual_num is not None and target_num is not None:
+        if operator == "==":
+            return actual_num == target_num
+        if operator == "!=":
+            return actual_num != target_num
+        if operator == ">=":
+            return actual_num >= target_num
+        if operator == "<=":
+            return actual_num <= target_num
+        if operator == ">":
+            return actual_num > target_num
+        if operator == "<":
+            return actual_num < target_num
+
+    if isinstance(actual_bool, bool) and isinstance(target_bool, bool):
+        if operator == "==":
+            return actual_bool is target_bool
+        if operator == "!=":
+            return actual_bool is not target_bool
+
+    haystack = str(actual or "").lower()
+    needle = str(value or "").lower()
+    if operator == "contains":
+        return needle in haystack
+    if operator == "not_contains":
+        return needle not in haystack
+    if operator == "in":
+        values = value if isinstance(value, list) else [value]
+        normalized_values = {str(item).lower() for item in values}
+        if isinstance(actual, list):
+            return any(str(item).lower() in normalized_values for item in actual)
+        return str(actual).lower() in normalized_values
+    if operator == "not_in":
+        values = value if isinstance(value, list) else [value]
+        normalized_values = {str(item).lower() for item in values}
+        if isinstance(actual, list):
+            return all(str(item).lower() not in normalized_values for item in actual)
+        return str(actual).lower() not in normalized_values
+    if operator == "==":
+        return str(actual_bool).lower() == str(target_bool).lower()
+    if operator == "!=":
+        return str(actual_bool).lower() != str(target_bool).lower()
+    return False
+
+
+def matches_text_constraint(product: ProductRecord, text: str) -> bool:
+    text = str(text or "").strip()
+    if not text:
+        return False
+    lowered = text.lower()
+    searchable = product_search_text(product)
+    memory_type = str(get_product_field(product, "memory_type") or "").upper()
+    cooling_type = str(get_product_field(product, "cooling_type") or "").lower()
+    wifi_builtin = _coerce_bool(get_product_field(product, "wifi_builtin"))
+    rgb = _coerce_bool((product.specs or {}).get("rgb"))
+
+    if any(token in lowered for token in ["白色", " white", "white"]) or text in {"白", "白色"}:
+        return "白" in searchable or "white" in searchable
+    if any(token in lowered for token in ["黑色", " black", "black"]) or text in {"黑", "黑色"}:
+        return "黑" in searchable or "black" in searchable
+    if any(token in lowered for token in ["海景房", "panoramic", "玻璃侧透", "侧透"]):
+        return any(token in searchable for token in ["海景房", "panoramic", "侧透", "玻璃"])
+    if any(token in lowered for token in ["wifi", "wi-fi", "无线"]):
+        return wifi_builtin is True or any(token in searchable for token in ["wifi", "wi-fi", "无线"])
+    if "ddr5" in lowered:
+        return memory_type == "DDR5" or "ddr5" in searchable
+    if "ddr4" in lowered:
+        return memory_type == "DDR4" or "ddr4" in searchable
+    if any(token in lowered for token in ["nvidia", "rtx"]):
+        return any(token in searchable for token in ["nvidia", "geforce", "rtx"])
+    if "amd" in lowered:
+        return any(token in searchable for token in ["amd", "radeon", " rx"])
+    if any(token in lowered for token in ["intel", "酷睿", "i3", "i5", "i7", "i9"]):
+        return any(token in searchable for token in ["intel", "酷睿", "i3", "i5", "i7", "i9"])
+    if any(token in lowered for token in ["水冷", "aio", "liquid"]):
+        return "水冷" in cooling_type or any(token in searchable for token in ["水冷", "aio", "liquid"])
+    if any(token in lowered for token in ["风冷", "air cooler"]):
+        return "风冷" in cooling_type or any(token in searchable for token in ["风冷", "air cooler"])
+    if any(token in lowered for token in ["rgb", "argb", "灯效", "灯光"]):
+        return rgb is True or any(token in searchable for token in ["rgb", "argb", "灯效", "灯光"])
+    return lowered in searchable
+
+
+def _constraints_for_profile(profile: dict[str, Any], field: str) -> list[Any]:
+    if field == "specified_parts":
+        return list(profile.get("specified_parts") or [])
+    selection_context = _selection_context_from_profile(profile)
+    return list(selection_context.get(field) or [])
 
 
 def normalize_component_weights(component_weights: dict[str, Any]) -> dict[str, float]:
@@ -219,6 +544,27 @@ def _specified_hard_map_from_profile(profile: dict[str, Any]) -> dict[str, Any]:
         if sp.get("constraint_level", "hard") == "hard":
             out[cat] = sp
     return out
+
+
+def _constraint_description(constraint: Any) -> str:
+    if isinstance(constraint, dict):
+        if constraint.get("keyword"):
+            return str(constraint.get("keyword"))
+        if constraint.get("keywords"):
+            return " ".join(str(item) for item in constraint.get("keywords") or [])
+        field = constraint.get("field")
+        operator = constraint.get("operator")
+        value = constraint.get("value")
+        return f"{field} {operator} {value}".strip()
+    return str(constraint)
+
+
+def _constraint_matches_product(product: ProductRecord, constraint: Any) -> bool:
+    if isinstance(constraint, dict):
+        return matches_structured_constraint(product, constraint)
+    if isinstance(constraint, str):
+        return matches_text_constraint(product, constraint)
+    return False
 
 
 def _budget_mid(parsed: ParsedRequirements) -> float | None:
@@ -432,13 +778,14 @@ class SelectionResult:
     sorted_by_category: dict[str, list[ProductRecord]]
     scores_by_category: dict[str, dict[str, float]]
     top3_preview: dict[str, list[dict]]
+    filter_warnings: dict[str, list[str]] | None = None
+    debug: dict[str, Any] = field(default_factory=dict)
 
 
 class PartsSelectionAgent:
     def select(self, requirement_profile: dict[str, Any], pool: list[ProductRecord]) -> SelectionResult:
         profile = normalize_requirement_profile(requirement_profile)
         cats, gpu_needed, want_fan = categories_for_build_from_profile(profile)
-        hard_specs = _specified_hard_map_from_profile(profile)
 
         by_cat: dict[str, list[ProductRecord]] = {}
         for p in pool:
@@ -447,26 +794,36 @@ class PartsSelectionAgent:
         sorted_by_category: dict[str, list[ProductRecord]] = {}
         scores_by_category: dict[str, dict[str, float]] = {}
         top3_preview: dict[str, list[dict]] = {}
+        filter_warnings: dict[str, list[str]] = {}
+        selection_debug: dict[str, dict[str, Any]] = {}
         anchor_parts: dict[str, ProductRecord] = {}
 
         for cat in cats:
-            items = list(by_cat.get(cat, []))
+            raw_candidates = list(by_cat.get(cat, []))
             if cat == "显卡" and not gpu_needed:
-                items = [p for p in items if p.price <= 0 or "无需独立显卡" in p.name or "核显办公" in p.name]
-                if not items:
-                    items = [p for p in by_cat.get("显卡", []) if p.price <= 0]
+                raw_candidates = [p for p in raw_candidates if p.price <= 0 or "无需独立显卡" in p.name or "核显办公" in p.name]
+                if not raw_candidates:
+                    raw_candidates = [p for p in by_cat.get("显卡", []) if p.price <= 0]
+
+            filtered_candidates, filter_debug = apply_hard_filters_with_debug(raw_candidates, profile, cat)
+            warnings = list(filter_debug.get("filter_warnings") or [])
+            if warnings:
+                filter_warnings[cat] = warnings
+            if not filtered_candidates:
+                sorted_by_category[cat] = []
+                scores_by_category[cat] = {}
+                top3_preview[cat] = []
+                selection_debug[cat] = {
+                    **filter_debug,
+                    "final_candidate_count": 0,
+                    "top5": [],
+                }
+                continue
 
             scored: list[tuple[float, ProductRecord]] = []
-            for it in items:
-                if cat in hard_specs and hard_specs[cat].get("constraint_level", "hard") == "hard":
-                    needle = str(hard_specs[cat].get("user_text") or "")
-                    b = fuzzy_bonus(it.name, needle)
-                    if b < 0.08 and needle.strip():
-                        continue
+            for it in filtered_candidates:
                 s = score_product_from_profile(cat, it, profile, cats, anchor_parts=anchor_parts)
                 scored.append((s, it))
-            if not scored:
-                scored = [(score_product_from_profile(cat, it, profile, cats, anchor_parts=anchor_parts), it) for it in items]
             scored.sort(key=lambda x: x[0], reverse=True)
             ordered = [p for _, p in scored]
             sorted_by_category[cat] = ordered
@@ -485,16 +842,43 @@ class PartsSelectionAgent:
                     }
                 )
             top3_preview[cat] = preview
+            selection_debug[cat] = {
+                **filter_debug,
+                "final_candidate_count": len(filtered_candidates),
+                "top5": [
+                    {
+                        "sku_id": p.sku_id,
+                        "name": p.name,
+                        "category": p.category,
+                        "component_type": p.component_type,
+                        "brand": p.brand,
+                        "price": p.price,
+                        "current_price": p.current_price,
+                        "score": round(scores_by_category[cat].get(p.sku_id, 0.0), 6),
+                        "tags": list(p.tags or []),
+                        "specs": dict(p.specs or {}),
+                    }
+                    for p in ordered[:5]
+                ],
+            }
 
         if not want_fan and "风扇" in sorted_by_category:
             sorted_by_category.pop("风扇", None)
             scores_by_category.pop("风扇", None)
             top3_preview.pop("风扇", None)
+            selection_debug.pop("风扇", None)
 
         return SelectionResult(
             sorted_by_category=sorted_by_category,
             scores_by_category=scores_by_category,
             top3_preview=top3_preview,
+            filter_warnings=filter_warnings,
+            debug={
+                "requirement_profile": profile,
+                "categories": cats,
+                "by_category": selection_debug,
+                "warnings": filter_warnings,
+            },
         )
 
 
@@ -503,7 +887,12 @@ def categories_for_build_from_profile(profile: dict[str, Any]) -> tuple[list[str
     gpu_needed = not _want_integrated_only_from_profile(profile)
 
     for sp in profile.get("specified_parts") or []:
-        if isinstance(sp, dict) and _normalize_spec_category(str(sp.get("category") or "")) == "显卡":
+        if isinstance(sp, dict) and (
+            _normalize_spec_category(str(sp.get("category") or "")) == "显卡"
+            or normalize_component_key(sp.get("component") or sp.get("component_type")) == "gpu"
+        ):
+            gpu_needed = True
+        if isinstance(sp, str) and "gpu" in _infer_components_from_text(sp):
             gpu_needed = True
 
     need_monitor = _need_monitor_from_profile(profile)
@@ -725,6 +1114,100 @@ def _compatibility_penalty(
     return penalty
 
 
+def filter_by_specified_parts(candidates: list[ProductRecord], specified_parts: list[Any], category: str) -> tuple[list[ProductRecord], list[str]]:
+    relevant = [constraint for constraint in specified_parts if any(constraint_applies_to_product(constraint, product, category) for product in candidates) or (isinstance(constraint, str) and normalize_component_key(map_category_to_component(category) or "") in _infer_components_from_text(constraint))]
+    if not relevant:
+        return candidates, []
+    filtered = [product for product in candidates if any(_constraint_matches_product(product, constraint) for constraint in relevant if constraint_applies_to_product(constraint, product, category))]
+    warnings: list[str] = []
+    if not filtered:
+        for constraint in relevant:
+            warnings.append(f"指定配件约束在 {category} 中无匹配候选: {_constraint_description(constraint)}")
+    return filtered, warnings
+
+
+def filter_by_must_satisfy(candidates: list[ProductRecord], must_satisfy: list[Any], category: str) -> tuple[list[ProductRecord], list[str]]:
+    relevant = []
+    for constraint in must_satisfy:
+        if any(constraint_applies_to_product(constraint, product, category) for product in candidates):
+            relevant.append(constraint)
+        elif isinstance(constraint, str) and normalize_component_key(map_category_to_component(category) or "") in _infer_components_from_text(constraint):
+            relevant.append(constraint)
+    if not relevant:
+        return candidates, []
+    filtered: list[ProductRecord] = []
+    for product in candidates:
+        applicable = [constraint for constraint in relevant if constraint_applies_to_product(constraint, product, category)]
+        if all(_constraint_matches_product(product, constraint) for constraint in applicable):
+            filtered.append(product)
+    warnings: list[str] = []
+    if not filtered:
+        for constraint in relevant:
+            warnings.append(f"硬约束在 {category} 中无匹配候选: {_constraint_description(constraint)}")
+    return filtered, warnings
+
+
+def filter_by_avoid(candidates: list[ProductRecord], avoid: list[Any], category: str) -> tuple[list[ProductRecord], list[str]]:
+    relevant = []
+    for constraint in avoid:
+        if any(constraint_applies_to_product(constraint, product, category) for product in candidates):
+            relevant.append(constraint)
+        elif isinstance(constraint, str) and normalize_component_key(map_category_to_component(category) or "") in _infer_components_from_text(constraint):
+            relevant.append(constraint)
+    if not relevant:
+        return candidates, []
+    filtered = []
+    for product in candidates:
+        applicable = [constraint for constraint in relevant if constraint_applies_to_product(constraint, product, category)]
+        if any(_constraint_matches_product(product, constraint) for constraint in applicable):
+            continue
+        filtered.append(product)
+    warnings: list[str] = []
+    if not filtered and relevant:
+        for constraint in relevant:
+            warnings.append(f"排除约束清空了 {category} 候选: {_constraint_description(constraint)}")
+    return filtered, warnings
+
+
+def apply_hard_filters(candidates: list[ProductRecord], profile: Any, category: str) -> tuple[list[ProductRecord], list[str]]:
+    filtered, debug = apply_hard_filters_with_debug(candidates, profile, category)
+    return filtered, list(debug.get("filter_warnings") or [])
+
+
+def apply_hard_filters_with_debug(candidates: list[ProductRecord], profile: Any, category: str) -> tuple[list[ProductRecord], dict[str, Any]]:
+    profile_dict = normalize_requirement_profile(profile) if not isinstance(profile, dict) else profile
+    warnings: list[str] = []
+    debug = {
+        "raw_count": len(candidates),
+        "after_specified_parts_count": None,
+        "after_must_satisfy_count": None,
+        "after_avoid_count": None,
+        "filter_warnings": [],
+    }
+    filtered = list(candidates)
+    filtered, step_warnings = filter_by_specified_parts(filtered, _constraints_for_profile(profile_dict, "specified_parts"), category)
+    debug["after_specified_parts_count"] = len(filtered)
+    warnings.extend(step_warnings)
+    filtered, step_warnings = filter_by_must_satisfy(filtered, _constraints_for_profile(profile_dict, "must_satisfy"), category)
+    debug["after_must_satisfy_count"] = len(filtered)
+    warnings.extend(step_warnings)
+    filtered, step_warnings = filter_by_avoid(filtered, _constraints_for_profile(profile_dict, "avoid"), category)
+    debug["after_avoid_count"] = len(filtered)
+    warnings.extend(step_warnings)
+    debug["filter_warnings"] = warnings
+    return filtered, debug
+
+
+def prefer_satisfy_bonus(product: ProductRecord, prefer_satisfy: list[Any]) -> float:
+    bonus = 0.0
+    for constraint in prefer_satisfy:
+        if not constraint_applies_to_product(constraint, product):
+            continue
+        if _constraint_matches_product(product, constraint):
+            bonus += 0.06 if isinstance(constraint, dict) else 0.04
+    return min(0.20, bonus)
+
+
 def ideal_share_from_profile(category: str, profile: dict[str, Any], cats: list[str]) -> float:
     monitor = _need_monitor_from_profile(profile)
     if monitor:
@@ -757,7 +1240,7 @@ def ideal_share_from_profile(category: str, profile: dict[str, Any], cats: list[
         return 0.0
     base_ratio = table.get(category, 0.08)
     capability_profile = get_capability_profile(profile)
-    component = map_category_to_component(category)
+    component = _component_key_for_weights(map_category_to_component(category))
     normalized_weights = normalize_component_weights(dict(capability_profile.get("component_weights") or {}))
     if component and component in normalized_weights:
         capability_ratio = normalized_weights[component]
@@ -777,11 +1260,12 @@ def score_product_from_profile(
     mx = _budget_max_from_profile(profile)
     capability_profile = get_capability_profile(profile)
     component = map_category_to_component(category)
+    component_key = _component_key_for_weights(component)
     normalized_weights = normalize_component_weights(dict(capability_profile.get("component_weights") or {}))
     protected_components = set(capability_profile.get("protected_components") or [])
     cost_cut_components = set(capability_profile.get("cost_cut_components") or [])
-    prefer_satisfy = [str(item).lower() for item in capability_profile.get("prefer_satisfy") or []]
-    avoid = [str(item).lower() for item in capability_profile.get("avoid") or []]
+    prefer_satisfy = _constraints_for_profile(profile, "prefer_satisfy") or list(capability_profile.get("prefer_satisfy") or [])
+    avoid = _constraints_for_profile(profile, "avoid") or list(capability_profile.get("avoid") or [])
 
     share = ideal_share_from_profile(category, profile, cats)
     ideal_price = (mid or mx or 8000) * share if share > 0 else None
@@ -797,11 +1281,11 @@ def score_product_from_profile(
     if category == "显卡" and product.price <= 0:
         perf = 0.2 if _want_integrated_only_from_profile(profile) else 0.05
     structured_perf = _component_structured_score(component, product, profile)
-    if component and component in normalized_weights:
-        perf += structured_perf * (0.45 + normalized_weights[component])
+    if component_key and component_key in normalized_weights:
+        perf += structured_perf * (0.45 + normalized_weights[component_key])
     elif product.specs:
         perf += structured_perf * 0.25
-    if component in protected_components:
+    if component_key in protected_components or component in protected_components:
         perf += structured_perf * 0.2
 
     app = appearance_bonus_from_profile(product.name, profile)
@@ -811,15 +1295,12 @@ def score_product_from_profile(
         spec_boost += 0.55 + fuzzy_bonus(product.name, str(hard_specs[category].get("user_text") or ""))
 
     searchable = " ".join([product.name, " ".join(product.tags or []), _spec_values_as_text(product)]).lower()
-    preference_bonus = 0.0
-    for item in prefer_satisfy:
-        if item and item in searchable:
-            preference_bonus += 0.06
-    if component in protected_components:
+    preference_bonus = prefer_satisfy_bonus(product, prefer_satisfy)
+    if component_key in protected_components or component in protected_components:
         preference_bonus += 0.06
     avoid_penalty = 0.0
     for item in avoid:
-        if item and item in searchable:
+        if constraint_applies_to_product(item, product) and _constraint_matches_product(product, item):
             avoid_penalty += 0.12
     compatibility_penalty = _compatibility_penalty(category, product, anchor_parts or {})
 
@@ -899,4 +1380,5 @@ def retrieve_candidates(parsed: ParsedRequirements, pool: list[ProductRecord]) -
         sorted_by_category=sorted_by_category,
         scores_by_category=scores_by_category,
         top3_preview=top3_preview,
+        debug={},
     )

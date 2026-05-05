@@ -36,6 +36,8 @@ class RequirementProfile(BaseModel):
     appearance: dict[str, Any] = Field(default_factory=dict)
     price: dict[str, Any] = Field(default_factory=dict)
     other: dict[str, Any] = Field(default_factory=dict)
+    capability_profile: dict[str, Any] = Field(default_factory=dict)
+    specified_parts: list[Any] = Field(default_factory=list)
     selection_context: SelectionContext = Field(default_factory=SelectionContext)
     missing_information: list[str] = Field(default_factory=list)
 

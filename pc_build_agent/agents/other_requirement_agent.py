@@ -6,20 +6,33 @@ from typing import Any
 
 from pc_build_agent.prompts.other_prompts import OTHER_EXTRACTION_PROMPT
 from pc_build_agent.schemas.other_schema import OtherAgentOutput, OtherOutput
+from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 
 class OtherRequirementAgent:
     PRIORITY_ORDER = {"low": 1, "medium": 2, "high": 3}
 
-    def __init__(self, rule_path: str | Path | None = None, llm: Any | None = None):
-        default_rule_path = Path(__file__).resolve().parents[1] / "rules" / "other_rules.json"
-        self.rule_path = Path(rule_path or default_rule_path)
-        self.rules = self.load_rules(self.rule_path)
+    def __init__(
+        self,
+        rule_path: str | Path | None = None,
+        llm: Any | None = None,
+        knowledge_repo: RequirementKnowledgeRepository | None = None,
+    ):
+        self.rule_path = Path(rule_path) if rule_path is not None else None
+        if self.rule_path is not None:
+            self.rules = self.load_rules(self.rule_path)
+        else:
+            repo = knowledge_repo or RequirementKnowledgeRepository()
+            self.rules = self.load_rule_items(repo.get_rules("other"))
         self.llm = llm
 
     def load_rules(self, rule_path: Path) -> list[dict[str, Any]]:
         with rule_path.open("r", encoding="utf-8") as f:
-            return json.load(f)
+            return self.load_rule_items(json.load(f))
+
+    @staticmethod
+    def load_rule_items(raw: Any) -> list[dict[str, Any]]:
+        return list(raw or [])
 
     @staticmethod
     def normalize_text(text: str) -> str:
@@ -68,7 +81,10 @@ class OtherRequirementAgent:
                 {"role": "system", "content": prompt},
                 {"role": "user", "content": user_text},
             ]
-            return self.llm.chat_json(messages, step="other_extraction")
+            try:
+                return self.llm.chat_json(messages, step="other_extraction")
+            except Exception:
+                return None
         return None
 
     def merge_rule_and_llm_results(

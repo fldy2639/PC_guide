@@ -1,6 +1,205 @@
 {
   "version": "v1",
-  "description": "能力需求画像 -> 八大件相对权重等策略输入（无硬件型号）。初始占位。",
-  "components": ["cpu", "gpu", "motherboard", "ram", "ssd", "cooling", "psu", "case"],
-  "profiles": []
+  "status": "runtime_enabled",
+  "runtime_scope": "first_layer_only",
+  "description": "第一层需求理解知识库中的能力权重参考索引。用于整理典型场景对应的能力重点与八大件相对权重，仅在第一层需求理解中做轻量补充，不接入第二层选件。",
+  "scale": {
+    "component_weight_range": "1-5 integer",
+    "meaning": {
+      "1": "非核心或可大幅压缩",
+      "2": "低相关",
+      "3": "中等相关",
+      "4": "高相关",
+      "5": "核心保护项"
+    }
+  },
+  "profiles": [
+    {
+      "profile_id": "aaa_gaming",
+      "scenario_tags": ["3A游戏", "高画质", "高分辨率", "显卡导向"],
+      "description": "面向黑神话、赛博朋克等 3A 游戏场景，重点保障显卡性能、供电和散热稳定性。",
+      "capabilities": ["high_graphics_performance", "high_vram_capacity", "stable_power_delivery", "sustained_cooling"],
+      "component_weights": {
+        "cpu": 4,
+        "gpu": 5,
+        "ram": 4,
+        "ssd": 3,
+        "motherboard": 2,
+        "psu": 4,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["优先保护显卡预算", "机箱和灯效外观通常可适度压缩"]
+    },
+    {
+      "profile_id": "fps_esports",
+      "scenario_tags": ["电竞游戏", "高帧率", "低延迟", "帧率稳定"],
+      "description": "面向 CS2、Valorant 等高帧率电竞场景，强调 CPU 响应与显卡稳定输出。",
+      "capabilities": ["high_frame_rate", "low_latency", "stable_frame_time", "fast_input_response"],
+      "component_weights": {
+        "cpu": 5,
+        "gpu": 4,
+        "ram": 4,
+        "ssd": 3,
+        "motherboard": 2,
+        "psu": 3,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["CPU 单核与散热稳定性较重要", "不宜为外观溢价过多让预算"]
+    },
+    {
+      "profile_id": "live_streaming",
+      "scenario_tags": ["游戏直播", "推流", "OBS", "编码稳定"],
+      "description": "面向直播或边玩边播场景，强调编码能力、多任务稳定性和网络相关保障。",
+      "capabilities": ["video_encoding", "multitask_stability", "streaming_reliability", "network_stability"],
+      "component_weights": {
+        "cpu": 4,
+        "gpu": 4,
+        "ram": 4,
+        "ssd": 3,
+        "motherboard": 3,
+        "psu": 4,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["直播会抬高 CPU/GPU/散热预算保护级别", "主板和接口能力重要性高于纯办公场景"]
+    },
+    {
+      "profile_id": "video_editing",
+      "scenario_tags": ["视频剪辑", "PR", "达芬奇", "导出速度"],
+      "description": "面向轻度到专业视频剪辑的统合参考画像，强调 CPU、GPU、内存和 SSD 协同。",
+      "capabilities": ["timeline_smoothness", "gpu_acceleration", "fast_export", "high_speed_storage"],
+      "component_weights": {
+        "cpu": 5,
+        "gpu": 4,
+        "ram": 5,
+        "ssd": 5,
+        "motherboard": 3,
+        "psu": 3,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["专业剪辑更偏向大内存和高速 SSD", "RGB 与高端机箱外观通常可压缩"]
+    },
+    {
+      "profile_id": "ai_training",
+      "scenario_tags": ["AI训练", "深度学习", "PyTorch", "显存导向"],
+      "description": "面向深度学习训练场景，重点保障 GPU 算力、显存相关预算以及供电散热余量。",
+      "capabilities": ["gpu_compute", "high_vram_capacity", "large_memory_capacity", "sustained_power_and_cooling"],
+      "component_weights": {
+        "cpu": 4,
+        "gpu": 5,
+        "ram": 5,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 5,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["GPU、内存、电源不可极限压价", "低预算与 AI 训练通常天然冲突"]
+    },
+    {
+      "profile_id": "local_llm_inference",
+      "scenario_tags": ["本地大模型", "推理", "Ollama", "显存容量"],
+      "description": "面向本地 LLM 推理场景，优先保障显存相关硬件、内存和 SSD 容量。",
+      "capabilities": ["model_loading", "inference_speed", "high_vram_capacity", "large_storage_capacity"],
+      "component_weights": {
+        "cpu": 3,
+        "gpu": 5,
+        "ram": 5,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 4,
+        "cooling": 4,
+        "case": 2
+      },
+      "notes": ["GPU 与内存是核心", "CPU 不宜无节制堆高"]
+    },
+    {
+      "profile_id": "office_study",
+      "scenario_tags": ["办公", "学习", "文档处理", "低成本"],
+      "description": "面向普通办公和学习场景，强调基础流畅、稳定和低成本。",
+      "capabilities": ["daily_responsiveness", "stable_basic_experience", "cost_efficiency"],
+      "component_weights": {
+        "cpu": 4,
+        "gpu": 1,
+        "ram": 4,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 2,
+        "cooling": 2,
+        "case": 2
+      },
+      "notes": ["独显通常不是必需", "预算应优先保障 CPU、内存和 SSD"]
+    },
+    {
+      "profile_id": "programming_development",
+      "scenario_tags": ["编程开发", "Docker", "虚拟机", "本地服务"],
+      "description": "面向编程开发场景，强调 CPU、多任务能力、内存和 SSD。",
+      "capabilities": ["compile_speed", "multitask_stability", "dev_environment_responsiveness", "local_services"],
+      "component_weights": {
+        "cpu": 5,
+        "gpu": 2,
+        "ram": 5,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 2,
+        "cooling": 3,
+        "case": 2
+      },
+      "notes": ["开发场景通常无需高端独显", "内存和 SSD 对体验影响明显"]
+    },
+    {
+      "profile_id": "data_analysis_modeling",
+      "scenario_tags": ["数据分析", "数学建模", "MATLAB", "Jupyter"],
+      "description": "面向数据分析和建模场景，强调 CPU 多核、内存和存储读取速度。",
+      "capabilities": ["matrix_compute", "data_processing", "memory_capacity", "storage_throughput"],
+      "component_weights": {
+        "cpu": 5,
+        "gpu": 2,
+        "ram": 5,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 2,
+        "cooling": 3,
+        "case": 2
+      },
+      "notes": ["多数轻量分析场景 GPU 不是核心", "大内存通常比外观更重要"]
+    },
+    {
+      "profile_id": "cad_3d_modeling",
+      "scenario_tags": ["CAD", "3D建模", "工业设计", "渲染"],
+      "description": "面向 CAD 与 3D 建模混合场景，强调 CPU、GPU、内存和图形稳定性。",
+      "capabilities": ["graphics_stability", "single_core_responsiveness", "gpu_rendering", "large_memory_capacity"],
+      "component_weights": {
+        "cpu": 5,
+        "gpu": 4,
+        "ram": 5,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 3,
+        "cooling": 3,
+        "case": 2
+      },
+      "notes": ["CAD 偏 CPU 响应，3D 渲染偏 GPU", "此画像用于两者混合场景的中间参考"]
+    },
+    {
+      "profile_id": "general_home_use",
+      "scenario_tags": ["家用", "影音娱乐", "网页", "轻度混合使用"],
+      "description": "面向普通家用和轻度娱乐混合场景，强调基础均衡与可接受成本。",
+      "capabilities": ["daily_smoothness", "media_playback", "basic_multitask"],
+      "component_weights": {
+        "cpu": 4,
+        "gpu": 2,
+        "ram": 3,
+        "ssd": 4,
+        "motherboard": 3,
+        "psu": 2,
+        "cooling": 2,
+        "case": 2
+      },
+      "notes": ["一般不需要极端性能或极端外观预算", "适合做默认中性参考画像"]
+    }
+  ]
 }

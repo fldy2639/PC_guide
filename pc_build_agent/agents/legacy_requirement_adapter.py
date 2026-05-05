@@ -38,12 +38,14 @@ class LegacyRequirementAdapter:
         }
 
         parsed = ParsedRequirements(
-            need_clarification=bool(profile.get("missing_information")),
+            need_clarification=False,
             clarification_question=None,
             missing_fields=list(profile.get("missing_information") or []),
             next_action=None,
             clarification_cards=[],
             requirements=_validate_model(RequirementsModel, requirements_payload),
+            capability_profile=dict(profile.get("capability_profile") or {}),
+            selection_context=dict(profile.get("selection_context") or {}),
             weights={"performance": 0.4, "price": 0.3, "appearance": 0.2, "other": 0.1},
             explanation="requirement_profile_adapter",
         )

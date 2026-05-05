@@ -1,5 +1,233 @@
-{
-  "version": "v1",
-  "description": "用户场景/用途标签 -> 抽象能力需求（无硬件型号）。初始占位，后续由你补全规则条目。",
-  "rules": []
-}
+[
+  {
+    "rule_id": "gaming_fps_esports",
+    "primary_category": "游戏",
+    "secondary_category": "电竞网游",
+    "normalized_tag": "fps_esports",
+    "keywords": ["CS2", "CSGO", "无畏契约", "Valorant", "LOL", "英雄联盟", "DOTA2", "永劫无间", "Apex", "PUBG", "守望先锋", "电竞", "高帧率", "低延迟", "240Hz", "144Hz"],
+    "performance_focus": ["高帧率", "低延迟", "帧率稳定"],
+    "component_priority": ["cpu_single_core", "gpu", "ram", "cooling", "ssd", "psu"],
+    "component_scores": {"cpu_single_core": 5, "cpu_multi_core": 3, "gpu": 4, "vram": 3, "ram": 4, "ssd": 3, "cooling": 4, "psu": 3, "motherboard": 2, "network": 3},
+    "rule_description": "电竞游戏更重视高帧率、低延迟和帧率稳定性，CPU单核性能和显卡性能优先。"
+  },
+  {
+    "rule_id": "gaming_aaa",
+    "primary_category": "游戏",
+    "secondary_category": "3A大作",
+    "normalized_tag": "aaa_gaming",
+    "keywords": ["3A", "黑神话", "黑神话悟空", "赛博朋克", "荒野大镖客", "艾尔登法环", "刺客信条", "霍格沃茨", "GTA", "开放世界", "大型游戏"],
+    "performance_focus": ["高画质", "高分辨率", "显卡性能", "显存容量"],
+    "component_priority": ["gpu", "vram", "cpu_single_core", "cooling", "psu", "ram", "ssd"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 3, "gpu": 5, "vram": 5, "ram": 4, "ssd": 3, "cooling": 4, "psu": 4, "motherboard": 2, "network": 2},
+    "rule_description": "3A游戏通常更依赖显卡性能和显存容量，分辨率越高，显卡和显存优先级越高。"
+  },
+  {
+    "rule_id": "gaming_high_quality_ray_tracing",
+    "primary_category": "游戏",
+    "secondary_category": "高画质 / 光追游戏",
+    "normalized_tag": "high_quality_ray_tracing",
+    "keywords": ["光追", "全高画质", "极致画质", "2K", "4K", "超高画质", "画质拉满", "最高画质"],
+    "performance_focus": ["高画质", "高分辨率", "光追性能", "显存容量"],
+    "component_priority": ["gpu", "vram", "psu", "cooling", "cpu_single_core", "ram", "ssd"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 3, "gpu": 5, "vram": 5, "ram": 4, "ssd": 3, "cooling": 4, "psu": 5, "motherboard": 3, "network": 1},
+    "rule_description": "高画质和光追游戏优先依赖高性能显卡、显存、电源和散热。"
+  },
+  {
+    "rule_id": "gaming_light",
+    "primary_category": "游戏",
+    "secondary_category": "轻度游戏",
+    "normalized_tag": "light_gaming",
+    "keywords": ["DNF", "CF", "穿越火线", "炉石", "梦幻西游", "小游戏", "偶尔玩游戏", "轻度游戏"],
+    "performance_focus": ["基础流畅", "低成本", "稳定运行"],
+    "component_priority": ["cpu_single_core", "gpu", "ram", "ssd", "cooling", "psu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 2, "gpu": 3, "vram": 2, "ram": 3, "ssd": 3, "cooling": 2, "psu": 2, "motherboard": 2, "network": 2},
+    "rule_description": "轻度游戏对显卡要求较低，保证CPU、内存和SSD即可获得较好体验。"
+  },
+  {
+    "rule_id": "gaming_emulator_multi_instance",
+    "primary_category": "游戏",
+    "secondary_category": "模拟器 / 多开游戏",
+    "normalized_tag": "emulator_multi_instance",
+    "keywords": ["模拟器", "多开", "手游多开", "雷电模拟器", "MuMu", "安卓模拟器", "搬砖", "多账号"],
+    "performance_focus": ["多核心", "大内存", "多任务稳定"],
+    "component_priority": ["cpu_multi_core", "ram", "ssd", "cooling", "gpu", "psu"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 5, "gpu": 3, "vram": 2, "ram": 5, "ssd": 4, "cooling": 4, "psu": 3, "motherboard": 3, "network": 3},
+    "rule_description": "模拟器和多开任务主要依赖CPU多核性能、内存容量和SSD响应。"
+  },
+  {
+    "rule_id": "streaming_game",
+    "primary_category": "直播",
+    "secondary_category": "游戏直播",
+    "normalized_tag": "game_streaming",
+    "keywords": ["边玩边播", "游戏直播", "推流", "OBS", "B站直播", "斗鱼", "虎牙", "抖音直播", "直播"],
+    "performance_focus": ["游戏性能", "编码性能", "稳定推流"],
+    "component_priority": ["gpu_encoding", "cpu_multi_core", "ram", "network", "cooling", "psu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 5, "gpu": 4, "gpu_encoding": 5, "vram": 3, "ram": 4, "ssd": 3, "cooling": 4, "psu": 4, "motherboard": 3, "network": 5},
+    "rule_description": "游戏直播需要游戏性能、GPU编码能力、CPU多核性能、内存和网络稳定性。"
+  },
+  {
+    "rule_id": "streaming_general",
+    "primary_category": "直播",
+    "secondary_category": "纯直播 / 带货直播",
+    "normalized_tag": "general_streaming",
+    "keywords": ["摄像头直播", "带货直播", "多机位", "直播间", "纯直播"],
+    "performance_focus": ["多路输入", "编码稳定", "网络稳定"],
+    "component_priority": ["cpu_multi_core", "gpu_encoding", "ram", "network", "ssd", "cooling"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 5, "gpu": 3, "gpu_encoding": 4, "vram": 2, "ram": 4, "ssd": 3, "cooling": 3, "psu": 3, "motherboard": 3, "network": 5},
+    "rule_description": "纯直播和带货直播更重视多路输入、编码稳定性和网络稳定性。"
+  },
+  {
+    "rule_id": "study_general",
+    "primary_category": "学习",
+    "secondary_category": "普通学习",
+    "normalized_tag": "general_study",
+    "keywords": ["网课", "查资料", "写论文", "PDF", "Word", "PPT", "浏览器", "学习用"],
+    "performance_focus": ["日常流畅", "稳定", "低成本"],
+    "component_priority": ["cpu_single_core", "ram", "ssd", "motherboard", "cooling", "gpu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 2, "gpu": 1, "vram": 1, "ram": 4, "ssd": 4, "cooling": 2, "psu": 2, "motherboard": 3, "network": 3},
+    "rule_description": "普通学习需求强调日常流畅、稳定和低成本，独立显卡不是刚需。"
+  },
+  {
+    "rule_id": "dev_programming",
+    "primary_category": "学习",
+    "secondary_category": "编程开发",
+    "normalized_tag": "programming_development",
+    "keywords": ["编程", "写代码", "Python", "Java", "C++", "VSCode", "PyCharm", "IDEA", "Docker", "虚拟机", "数据库", "本地服务"],
+    "performance_focus": ["编译速度", "开发环境流畅", "多任务", "本地服务运行"],
+    "component_priority": ["cpu_multi_core", "ram", "ssd", "cpu_single_core", "cooling", "gpu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 5, "gpu": 2, "vram": 1, "ram": 5, "ssd": 4, "cooling": 3, "psu": 2, "motherboard": 3, "network": 2},
+    "rule_description": "编程开发更重视CPU、内存和SSD，Docker、虚拟机和数据库场景需要提高内存容量。"
+  },
+  {
+    "rule_id": "data_analysis_modeling",
+    "primary_category": "学习",
+    "secondary_category": "数据分析 / 数学建模",
+    "normalized_tag": "data_analysis_modeling",
+    "keywords": ["数据分析", "数学建模", "MATLAB", "R语言", "R", "SPSS", "Stata", "Jupyter", "矩阵计算", "优化算法"],
+    "performance_focus": ["数据处理", "矩阵计算", "多任务"],
+    "component_priority": ["cpu_multi_core", "ram", "ssd", "gpu", "cooling"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 5, "gpu": 2, "vram": 1, "ram": 5, "ssd": 4, "cooling": 3, "psu": 2, "motherboard": 3, "network": 2},
+    "rule_description": "数据分析和数学建模主要依赖CPU多核性能、内存容量和SSD读写。"
+  },
+  {
+    "rule_id": "office_general",
+    "primary_category": "办公",
+    "secondary_category": "普通办公",
+    "normalized_tag": "general_office",
+    "keywords": ["办公", "Office", "Word", "Excel", "PPT", "微信", "会议", "文档处理"],
+    "performance_focus": ["响应快", "稳定", "省钱"],
+    "component_priority": ["cpu_single_core", "ram", "ssd", "motherboard", "cooling", "gpu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 2, "gpu": 1, "vram": 1, "ram": 4, "ssd": 4, "cooling": 2, "psu": 2, "motherboard": 3, "network": 3},
+    "rule_description": "普通办公以流畅稳定为主，不需要过度堆显卡。"
+  },
+  {
+    "rule_id": "office_multitasking",
+    "primary_category": "办公",
+    "secondary_category": "多任务办公",
+    "normalized_tag": "office_multitasking",
+    "keywords": ["多开网页", "多开微信", "很多表格", "很多软件同时开", "多任务办公"],
+    "performance_focus": ["多任务", "内存容量", "稳定运行"],
+    "component_priority": ["ram", "cpu_multi_core", "ssd", "cooling", "motherboard", "gpu"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 4, "gpu": 1, "vram": 1, "ram": 5, "ssd": 4, "cooling": 3, "psu": 2, "motherboard": 3, "network": 3},
+    "rule_description": "多任务办公优先提高内存容量，其次考虑CPU多核和SSD响应。"
+  },
+  {
+    "rule_id": "design_graphic",
+    "primary_category": "设计",
+    "secondary_category": "平面设计",
+    "normalized_tag": "graphic_design",
+    "keywords": ["Photoshop", "PS", "Illustrator", "AI", "Figma", "海报", "修图", "平面设计"],
+    "performance_focus": ["设计软件流畅", "图片处理", "素材读取"],
+    "component_priority": ["cpu_single_core", "ram", "ssd", "gpu", "cooling"],
+    "component_scores": {"cpu_single_core": 5, "cpu_multi_core": 3, "gpu": 3, "vram": 2, "ram": 5, "ssd": 4, "cooling": 3, "psu": 2, "motherboard": 3, "network": 2},
+    "rule_description": "平面设计主要依赖CPU、内存和SSD，显卡需求中等。"
+  },
+  {
+    "rule_id": "video_editing_light",
+    "primary_category": "剪辑",
+    "secondary_category": "轻度视频剪辑",
+    "normalized_tag": "light_video_editing",
+    "keywords": ["剪映", "短视频", "1080P剪辑", "Vlog", "轻度剪辑"],
+    "performance_focus": ["编码", "预览流畅", "导出速度"],
+    "component_priority": ["cpu_multi_core", "gpu", "ram", "ssd", "cooling"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 4, "gpu": 4, "vram": 3, "ram": 4, "ssd": 4, "cooling": 3, "psu": 3, "motherboard": 3, "network": 2},
+    "rule_description": "轻度视频剪辑需要CPU、GPU、内存和SSD均衡配置。"
+  },
+  {
+    "rule_id": "video_editing_professional",
+    "primary_category": "剪辑",
+    "secondary_category": "专业视频剪辑",
+    "normalized_tag": "professional_video_editing",
+    "keywords": ["Premiere", "PR", "达芬奇", "DaVinci Resolve", "AE", "After Effects", "4K剪辑", "调色", "特效", "专业剪辑"],
+    "performance_focus": ["多核CPU", "GPU加速", "显存", "大内存", "高速SSD"],
+    "component_priority": ["cpu_multi_core", "gpu", "vram", "ram", "ssd", "cooling", "psu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 5, "gpu": 5, "vram": 5, "ram": 5, "ssd": 5, "cooling": 4, "psu": 4, "motherboard": 3, "network": 2},
+    "rule_description": "专业视频剪辑依赖CPU多核、GPU加速、显存、内存和高速SSD。"
+  },
+  {
+    "rule_id": "modeling_3d_rendering",
+    "primary_category": "建模",
+    "secondary_category": "3D建模 / 渲染",
+    "normalized_tag": "3d_modeling_rendering",
+    "keywords": ["Blender", "C4D", "Cinema 4D", "Maya", "3ds Max", "建模", "渲染", "三维建模"],
+    "performance_focus": ["GPU渲染", "显存容量", "CPU多核", "内存"],
+    "component_priority": ["gpu", "vram", "cpu_multi_core", "ram", "ssd", "cooling", "psu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 4, "gpu": 5, "vram": 5, "ram": 4, "ssd": 4, "cooling": 4, "psu": 4, "motherboard": 3, "network": 2},
+    "rule_description": "3D建模和渲染通常更依赖GPU和显存，同时需要CPU和内存配合。"
+  },
+  {
+    "rule_id": "cad_industrial_design",
+    "primary_category": "建模",
+    "secondary_category": "CAD / 工业设计",
+    "normalized_tag": "cad_industrial_design",
+    "keywords": ["AutoCAD", "SolidWorks", "UG", "Creo", "CATIA", "机械设计", "工业设计", "CAD"],
+    "performance_focus": ["CPU单核", "图形稳定性", "内存容量"],
+    "component_priority": ["cpu_single_core", "ram", "gpu", "ssd", "cooling"],
+    "component_scores": {"cpu_single_core": 5, "cpu_multi_core": 3, "gpu": 4, "vram": 3, "ram": 5, "ssd": 4, "cooling": 3, "psu": 3, "motherboard": 3, "network": 2},
+    "rule_description": "CAD和工业设计更重视CPU单核性能、内存和图形稳定性。"
+  },
+  {
+    "rule_id": "ai_local_llm",
+    "primary_category": "AI",
+    "secondary_category": "本地大模型 / AI推理",
+    "normalized_tag": "local_llm_inference",
+    "keywords": ["AI", "本地大模型", "LLM", "Ollama", "Llama", "Qwen", "ChatGLM", "推理", "跑模型"],
+    "performance_focus": ["显存容量", "GPU算力", "模型加载", "推理速度"],
+    "component_priority": ["vram", "gpu", "ram", "ssd", "cpu_multi_core", "psu", "cooling"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 3, "gpu": 5, "vram": 5, "ram": 5, "ssd": 4, "cooling": 4, "psu": 4, "motherboard": 3, "network": 2},
+    "rule_description": "本地大模型优先关注显存容量，其次是GPU算力、内存和SSD容量。"
+  },
+  {
+    "rule_id": "ai_stable_diffusion",
+    "primary_category": "AI",
+    "secondary_category": "AI绘图",
+    "normalized_tag": "ai_image_generation",
+    "keywords": ["Stable Diffusion", "SD", "ComfyUI", "AI画图", "文生图", "图生图"],
+    "performance_focus": ["GPU算力", "显存容量", "出图速度"],
+    "component_priority": ["gpu", "vram", "ram", "ssd", "cpu_multi_core", "psu", "cooling"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 3, "gpu": 5, "vram": 5, "ram": 4, "ssd": 4, "cooling": 4, "psu": 4, "motherboard": 3, "network": 2},
+    "rule_description": "AI绘图主要依赖GPU算力和显存容量。"
+  },
+  {
+    "rule_id": "ai_deep_learning_training",
+    "primary_category": "AI",
+    "secondary_category": "深度学习训练",
+    "normalized_tag": "deep_learning_training",
+    "keywords": ["PyTorch", "TensorFlow", "深度学习", "机器学习", "训练模型", "神经网络", "训练"],
+    "performance_focus": ["GPU算力", "显存容量", "内存", "数据读取"],
+    "component_priority": ["gpu", "vram", "ram", "cpu_multi_core", "ssd", "psu", "cooling"],
+    "component_scores": {"cpu_single_core": 3, "cpu_multi_core": 4, "gpu": 5, "vram": 5, "ram": 5, "ssd": 4, "cooling": 4, "psu": 5, "motherboard": 3, "network": 3},
+    "rule_description": "深度学习训练需要高GPU算力、大显存、大内存和稳定供电散热。"
+  },
+  {
+    "rule_id": "scientific_computing_simulation",
+    "primary_category": "科研计算",
+    "secondary_category": "有限元 / 物理仿真",
+    "normalized_tag": "simulation_computing",
+    "keywords": ["Ansys", "COMSOL", "Abaqus", "Fluent", "仿真", "有限元", "多物理场", "物理仿真"],
+    "performance_focus": ["CPU多核", "大内存", "大容量存储", "长时间稳定运行"],
+    "component_priority": ["cpu_multi_core", "ram", "ssd", "cooling", "gpu", "psu"],
+    "component_scores": {"cpu_single_core": 4, "cpu_multi_core": 5, "gpu": 3, "vram": 2, "ram": 5, "ssd": 5, "cooling": 5, "psu": 4, "motherboard": 3, "network": 2},
+    "rule_description": "有限元和物理仿真通常更依赖CPU多核性能、大内存和稳定散热。"
+  }
+]

@@ -165,6 +165,22 @@ def test_llm_only_fills_unknown_fields():
     assert "是否需要蓝牙" in other["missing_information"]
 
 
+class BrokenLlm:
+    api_key = "fake-key"
+
+    def chat_json(self, messages, step):  # noqa: ANN001
+        raise OSError("dns failure")
+
+
+def test_llm_failure_falls_back_to_rules_only():
+    result = make_agent(llm=BrokenLlm()).analyze("宿舍用，要WiFi，不要二手，只要主机")
+    other = result["other"]
+
+    assert other["purchase_scope"]["only_host"] is True
+    assert other["connectivity"]["need_wifi"] is True
+    assert other["purchase_risk"]["accept_used_parts"] is False
+
+
 def test_cross_module_signals_are_structured_and_deduped():
     agent = make_agent()
     merged = agent.merge_rule_and_llm_results(

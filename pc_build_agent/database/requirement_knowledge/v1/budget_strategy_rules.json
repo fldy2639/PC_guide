@@ -1,6 +1,248 @@
 {
-  "version": "v1",
-  "description": "预算压力 -> 八大件保护/压缩等策略（无具体价格点位）。初始占位。",
-  "components": ["cpu", "gpu", "motherboard", "ram", "ssd", "cooling", "psu", "case"],
-  "levels": []
+  "performance_profiles": {
+    "general_office": {
+      "performance_cost_level": "low",
+      "protected_by_performance": ["cpu", "ram", "ssd"],
+      "compressible_by_performance": ["gpu", "case", "premium_motherboard_features"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.22, "spread": 0.06},
+        "gpu": {"target_ratio": 0.0, "spread": 0.04},
+        "motherboard": {"target_ratio": 0.13, "spread": 0.04},
+        "ram": {"target_ratio": 0.18, "spread": 0.05},
+        "ssd": {"target_ratio": 0.17, "spread": 0.05},
+        "cooling": {"target_ratio": 0.08, "spread": 0.03},
+        "psu": {"target_ratio": 0.10, "spread": 0.03},
+        "case": {"target_ratio": 0.12, "spread": 0.04}
+      },
+      "reason": "普通办公学习场景优先保障 CPU、内存和 SSD 的基础体验，独显与外观溢价可压缩。"
+    },
+    "general_study": {
+      "performance_cost_level": "low",
+      "protected_by_performance": ["cpu", "ram", "ssd"],
+      "compressible_by_performance": ["gpu", "case", "premium_motherboard_features"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.22, "spread": 0.06},
+        "gpu": {"target_ratio": 0.0, "spread": 0.04},
+        "motherboard": {"target_ratio": 0.13, "spread": 0.04},
+        "ram": {"target_ratio": 0.18, "spread": 0.05},
+        "ssd": {"target_ratio": 0.17, "spread": 0.05},
+        "cooling": {"target_ratio": 0.08, "spread": 0.03},
+        "psu": {"target_ratio": 0.10, "spread": 0.03},
+        "case": {"target_ratio": 0.12, "spread": 0.04}
+      },
+      "reason": "学习类场景与普通办公类似，强调稳定流畅和低成本。"
+    },
+    "programming_development": {
+      "performance_cost_level": "medium",
+      "protected_by_performance": ["cpu", "ram", "ssd"],
+      "compressible_by_performance": ["gpu", "rgb", "case_premium"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.26, "spread": 0.07},
+        "gpu": {"target_ratio": 0.02, "spread": 0.05},
+        "motherboard": {"target_ratio": 0.14, "spread": 0.04},
+        "ram": {"target_ratio": 0.21, "spread": 0.06},
+        "ssd": {"target_ratio": 0.17, "spread": 0.05},
+        "cooling": {"target_ratio": 0.07, "spread": 0.03},
+        "psu": {"target_ratio": 0.07, "spread": 0.03},
+        "case": {"target_ratio": 0.06, "spread": 0.03}
+      },
+      "reason": "编程开发更适合把预算集中在 CPU、内存和 SSD，显卡与灯效不是核心。"
+    },
+    "fps_esports": {
+      "performance_cost_level": "medium_high",
+      "protected_by_performance": ["cpu", "gpu", "ram", "cooling"],
+      "compressible_by_performance": ["case_premium", "motherboard_extra_features"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.24, "spread": 0.07},
+        "gpu": {"target_ratio": 0.32, "spread": 0.08},
+        "motherboard": {"target_ratio": 0.10, "spread": 0.04},
+        "ram": {"target_ratio": 0.12, "spread": 0.05},
+        "ssd": {"target_ratio": 0.08, "spread": 0.04},
+        "cooling": {"target_ratio": 0.06, "spread": 0.03},
+        "psu": {"target_ratio": 0.05, "spread": 0.03},
+        "case": {"target_ratio": 0.03, "spread": 0.03}
+      },
+      "reason": "电竞游戏更依赖 CPU、GPU、内存和散热，机箱外观溢价可压缩。"
+    },
+    "aaa_gaming": {
+      "performance_cost_level": "high",
+      "protected_by_performance": ["gpu", "cpu", "psu", "cooling", "ram"],
+      "compressible_by_performance": ["case_premium", "rgb", "premium_motherboard"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.18, "spread": 0.06},
+        "gpu": {"target_ratio": 0.42, "spread": 0.10},
+        "motherboard": {"target_ratio": 0.08, "spread": 0.04},
+        "ram": {"target_ratio": 0.10, "spread": 0.04},
+        "ssd": {"target_ratio": 0.08, "spread": 0.04},
+        "cooling": {"target_ratio": 0.05, "spread": 0.03},
+        "psu": {"target_ratio": 0.06, "spread": 0.03},
+        "case": {"target_ratio": 0.03, "spread": 0.03}
+      },
+      "reason": "3A 游戏最需要保护显卡、CPU 与供电散热，外观溢价通常只能部分保留。"
+    },
+    "professional_video_editing": {
+      "performance_cost_level": "high",
+      "protected_by_performance": ["cpu", "gpu", "ram", "ssd", "cooling"],
+      "compressible_by_performance": ["rgb", "case_premium"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.23, "spread": 0.07},
+        "gpu": {"target_ratio": 0.25, "spread": 0.08},
+        "motherboard": {"target_ratio": 0.08, "spread": 0.04},
+        "ram": {"target_ratio": 0.15, "spread": 0.06},
+        "ssd": {"target_ratio": 0.14, "spread": 0.06},
+        "cooling": {"target_ratio": 0.06, "spread": 0.03},
+        "psu": {"target_ratio": 0.05, "spread": 0.03},
+        "case": {"target_ratio": 0.04, "spread": 0.03}
+      },
+      "reason": "专业剪辑更适合把预算分配给 CPU、GPU、内存、SSD 和散热。"
+    },
+    "light_video_editing": {
+      "performance_cost_level": "medium_high",
+      "protected_by_performance": ["cpu", "gpu", "ram", "ssd"],
+      "compressible_by_performance": ["rgb", "case_premium"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.22, "spread": 0.07},
+        "gpu": {"target_ratio": 0.20, "spread": 0.08},
+        "motherboard": {"target_ratio": 0.09, "spread": 0.04},
+        "ram": {"target_ratio": 0.15, "spread": 0.05},
+        "ssd": {"target_ratio": 0.14, "spread": 0.05},
+        "cooling": {"target_ratio": 0.06, "spread": 0.03},
+        "psu": {"target_ratio": 0.07, "spread": 0.03},
+        "case": {"target_ratio": 0.07, "spread": 0.03}
+      },
+      "reason": "轻度剪辑需要均衡 CPU、GPU、内存和 SSD。"
+    },
+    "3d_modeling_rendering": {
+      "performance_cost_level": "high",
+      "protected_by_performance": ["gpu", "cpu", "ram", "psu"],
+      "compressible_by_performance": ["rgb", "case_premium"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.18, "spread": 0.06},
+        "gpu": {"target_ratio": 0.36, "spread": 0.10},
+        "motherboard": {"target_ratio": 0.08, "spread": 0.04},
+        "ram": {"target_ratio": 0.14, "spread": 0.05},
+        "ssd": {"target_ratio": 0.09, "spread": 0.04},
+        "cooling": {"target_ratio": 0.05, "spread": 0.03},
+        "psu": {"target_ratio": 0.06, "spread": 0.03},
+        "case": {"target_ratio": 0.04, "spread": 0.03}
+      },
+      "reason": "3D 建模渲染以 GPU、CPU、内存和供电稳定性为主。"
+    },
+    "local_llm_inference": {
+      "performance_cost_level": "very_high",
+      "protected_by_performance": ["gpu", "ram", "ssd", "psu"],
+      "compressible_by_performance": ["cpu_overkill", "case_premium", "rgb"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.12, "spread": 0.05},
+        "gpu": {"target_ratio": 0.45, "spread": 0.10},
+        "motherboard": {"target_ratio": 0.08, "spread": 0.04},
+        "ram": {"target_ratio": 0.15, "spread": 0.05},
+        "ssd": {"target_ratio": 0.10, "spread": 0.04},
+        "cooling": {"target_ratio": 0.04, "spread": 0.03},
+        "psu": {"target_ratio": 0.04, "spread": 0.03},
+        "case": {"target_ratio": 0.02, "spread": 0.03}
+      },
+      "reason": "本地大模型最重要的是 GPU、显存相关投入、内存、SSD 与供电。"
+    },
+    "deep_learning_training": {
+      "performance_cost_level": "very_high",
+      "protected_by_performance": ["gpu", "ram", "ssd", "psu"],
+      "compressible_by_performance": ["cpu_overkill", "case_premium", "rgb"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.14, "spread": 0.05},
+        "gpu": {"target_ratio": 0.44, "spread": 0.10},
+        "motherboard": {"target_ratio": 0.08, "spread": 0.04},
+        "ram": {"target_ratio": 0.15, "spread": 0.05},
+        "ssd": {"target_ratio": 0.08, "spread": 0.04},
+        "cooling": {"target_ratio": 0.04, "spread": 0.03},
+        "psu": {"target_ratio": 0.05, "spread": 0.03},
+        "case": {"target_ratio": 0.02, "spread": 0.03}
+      },
+      "reason": "深度学习训练对 GPU、内存、SSD 和供电要求极高。"
+    },
+    "simulation_computing": {
+      "performance_cost_level": "high",
+      "protected_by_performance": ["cpu", "ram", "ssd", "cooling", "psu"],
+      "compressible_by_performance": ["gpu", "case_premium", "rgb"],
+      "component_ranges": {
+        "cpu": {"target_ratio": 0.30, "spread": 0.08},
+        "gpu": {"target_ratio": 0.06, "spread": 0.05},
+        "motherboard": {"target_ratio": 0.09, "spread": 0.04},
+        "ram": {"target_ratio": 0.20, "spread": 0.06},
+        "ssd": {"target_ratio": 0.12, "spread": 0.05},
+        "cooling": {"target_ratio": 0.08, "spread": 0.03},
+        "psu": {"target_ratio": 0.08, "spread": 0.03},
+        "case": {"target_ratio": 0.07, "spread": 0.03}
+      },
+      "reason": "科研仿真更需要 CPU、内存、SSD、散热与供电的长期稳定性。"
+    }
+  },
+  "appearance_drivers": {
+    "itx_compact": {
+      "driver": "itx_premium",
+      "affected_components": ["case", "motherboard", "psu", "cooling"],
+      "price_impact": "high",
+      "fallback_strategy": "预算紧张时从ITX放宽到紧凑M-ATX"
+    },
+    "compact_m_atx": {
+      "driver": "compact_case_cost",
+      "affected_components": ["case", "motherboard", "cooling"],
+      "price_impact": "low_to_medium",
+      "fallback_strategy": "优先紧凑M-ATX，不进入高成本ITX方案"
+    },
+    "white": {
+      "driver": "white_build_premium",
+      "affected_components": ["case", "cooling", "ram", "gpu"],
+      "price_impact": "medium",
+      "fallback_strategy": "优先白色机箱，内部配件颜色可放宽"
+    },
+    "panoramic": {
+      "driver": "panoramic_case_premium",
+      "affected_components": ["case", "cooling"],
+      "price_impact": "medium",
+      "fallback_strategy": "预算不足时保留玻璃侧透，不强制高端双仓或背插"
+    },
+    "dual_chamber": {
+      "driver": "dual_chamber_premium",
+      "affected_components": ["case", "motherboard"],
+      "price_impact": "medium_high",
+      "fallback_strategy": "预算紧张时放宽背插或双仓要求"
+    },
+    "aluminum": {
+      "driver": "aluminum_case_premium",
+      "affected_components": ["case"],
+      "price_impact": "high",
+      "fallback_strategy": "改为普通金属或钢板机箱"
+    },
+    "silent": {
+      "driver": "low_noise_cost",
+      "affected_components": ["cooling", "psu", "case"],
+      "price_impact": "medium",
+      "fallback_strategy": "保留基础低噪，放弃极致静音"
+    },
+    "low_noise": {
+      "driver": "low_noise_cost",
+      "affected_components": ["cooling", "psu", "case"],
+      "price_impact": "medium",
+      "fallback_strategy": "保留基础低噪，放弃极致静音"
+    },
+    "argb": {
+      "driver": "rgb_lighting_cost",
+      "affected_components": ["cooling", "ram", "case", "motherboard"],
+      "price_impact": "medium",
+      "fallback_strategy": "减少RGB风扇和灯效配件"
+    },
+    "rgb": {
+      "driver": "rgb_lighting_cost",
+      "affected_components": ["cooling", "ram", "case", "motherboard"],
+      "price_impact": "medium",
+      "fallback_strategy": "减少RGB风扇和灯效配件"
+    },
+    "no_rgb": {
+      "driver": "no_rgb_policy",
+      "affected_components": ["cooling", "ram", "case"],
+      "price_impact": "neutral_or_saving",
+      "fallback_strategy": "选择无光或可关闭灯效配件"
+    }
+  }
 }

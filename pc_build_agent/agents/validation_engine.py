@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from pc_build_agent.agents.hardware import (
@@ -29,6 +29,23 @@ class ValidationOutcome:
     risk_check: dict[str, Any]
     unmet_constraints: list[str]
     alternative_suggestions: list[str]
+    debug: dict[str, Any] = field(default_factory=dict)
+
+
+def _part_snapshot(part: ProductRecord | None) -> dict[str, Any] | None:
+    if part is None:
+        return None
+    return {
+        "sku_id": part.sku_id,
+        "name": part.name,
+        "price": part.price,
+        "component_type": part.component_type,
+        "specs": dict(part.specs or {}),
+    }
+
+
+def _parts_snapshot(parts: dict[str, ProductRecord]) -> dict[str, Any]:
+    return {category: _part_snapshot(part) for category, part in parts.items()}
 
 
 def _required_psu_watts(gpu: ProductRecord, power_rules: list[dict[str, Any]]) -> tuple[int, int]:
@@ -72,6 +89,117 @@ def _ddr_ok(mb_name: str, ram_name: str, mem_rules: list[dict[str, Any]]) -> tup
     return True, None
 
 
+def _spec_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip().upper() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        text = value.replace("，", "/").replace(",", "/").replace("|", "/")
+        return [part.strip().upper() for part in text.split("/") if part.strip()]
+    return []
+
+
+def _spec_socket_ok(cpu: ProductRecord, mb: ProductRecord) -> bool | None:
+    cpu_socket = (cpu.specs or {}).get("socket")
+    mb_socket = (mb.specs or {}).get("socket")
+    if cpu_socket and mb_socket:
+        return str(cpu_socket).upper() == str(mb_socket).upper()
+    return None
+
+
+def _spec_memory_ok(mb: ProductRecord, ram: ProductRecord) -> tuple[bool, str | None] | None:
+    mb_type = (mb.specs or {}).get("memory_type")
+    ram_type = (ram.specs or {}).get("memory_type")
+    if mb_type and ram_type:
+        ok = str(mb_type).upper() == str(ram_type).upper()
+        return ok, None if ok else f"内存类型与主板不一致（主板:{mb_type}，内存:{ram_type}）"
+    return None
+
+
+def _spec_psu_ok(cpu: ProductRecord | None, gpu: ProductRecord, psu: ProductRecord) -> tuple[bool, str | None, str | None] | None:
+    wattage = (psu.specs or {}).get("wattage_w")
+    if not isinstance(wattage, (int, float)):
+        return None
+    gpu_rec = (gpu.specs or {}).get("recommended_psu_w")
+    if isinstance(gpu_rec, (int, float)):
+        if float(wattage) < float(gpu_rec):
+            return False, f"电源额定功率可能不足（当前约 {int(wattage)}W，建议不低于 {int(gpu_rec)}W）", None
+        return True, None, None
+    cpu_tdp = (cpu.specs or {}).get("tdp_w") if cpu else None
+    gpu_tbp = (gpu.specs or {}).get("tbp_w")
+    if isinstance(cpu_tdp, (int, float)) or isinstance(gpu_tbp, (int, float)):
+        need = 150.0
+        if isinstance(cpu_tdp, (int, float)):
+            need += float(cpu_tdp)
+        if isinstance(gpu_tbp, (int, float)):
+            need += float(gpu_tbp)
+        if float(wattage) < need:
+            return False, f"电源额定功率可能不足（当前约 {int(wattage)}W，建议不低于 {int(need)}W）", None
+        if float(wattage) < need + 100:
+            return True, None, f"电源可用但余量一般（当前约 {int(wattage)}W，建议预留更多功率余量）"
+        return True, None, None
+    return None
+
+
+def _spec_gpu_case_ok(gpu: ProductRecord, case: ProductRecord) -> tuple[bool, str | None] | None:
+    gpu_len = (gpu.specs or {}).get("gpu_length_mm")
+    max_len = (case.specs or {}).get("max_gpu_length_mm")
+    if isinstance(gpu_len, (int, float)) and isinstance(max_len, (int, float)):
+        ok = float(gpu_len) <= float(max_len)
+        return ok, None if ok else "显卡长度与机箱显卡限长不匹配"
+    return None
+
+
+def _spec_cooler_cpu_ok(cpu: ProductRecord, cooler: ProductRecord) -> tuple[bool, str | None] | None:
+    cpu_socket = (cpu.specs or {}).get("socket")
+    supported = _spec_list((cooler.specs or {}).get("supported_sockets"))
+    if cpu_socket and supported:
+        if str(cpu_socket).upper() in supported:
+            return True, None
+        return False, "散热器支持的 CPU 插槽与处理器不匹配"
+    cooling_capacity = (cooler.specs or {}).get("cooling_capacity_w")
+    cpu_tdp = (cpu.specs or {}).get("tdp_w")
+    if isinstance(cooling_capacity, (int, float)) and isinstance(cpu_tdp, (int, float)):
+        ok = float(cooling_capacity) >= float(cpu_tdp)
+        return ok, None if ok else "散热器压制能力可能不足"
+    return None
+
+
+def _spec_cooler_case_ok(cooler: ProductRecord, case: ProductRecord) -> tuple[bool, str | None] | None:
+    cooling_type = str((cooler.specs or {}).get("cooling_type") or "")
+    radiator_size = (cooler.specs or {}).get("radiator_size_mm")
+    cooler_height = (cooler.specs or {}).get("cooler_height_mm")
+    max_height = (case.specs or {}).get("max_cpu_cooler_height_mm")
+    if "风冷" in cooling_type and isinstance(cooler_height, (int, float)) and isinstance(max_height, (int, float)):
+        ok = float(cooler_height) <= float(max_height)
+        return ok, None if ok else "风冷散热器高度与机箱 CPU 散热限高不匹配"
+    if isinstance(radiator_size, (int, float)):
+        text = f"{case.name} {' '.join(case.tags or [])} {_spec_list((case.specs or {}).get('radiator_support'))}"
+        if str(int(radiator_size)) in text:
+            return True, None
+        return False, f"机箱可能不支持 {int(radiator_size)} 冷排"
+    return None
+
+
+def _spec_mb_case_ok(mb: ProductRecord, case: ProductRecord) -> tuple[bool, str | None] | None:
+    form_factor = (mb.specs or {}).get("form_factor")
+    supported = _spec_list((case.specs or {}).get("supported_motherboard_form_factors"))
+    if form_factor and supported:
+        form = str(form_factor).upper()
+        ok = form in supported
+        return ok, None if ok else "主板板型与机箱支持范围不匹配"
+    return None
+
+
+def _spec_psu_case_ok(psu: ProductRecord, case: ProductRecord) -> tuple[bool, str | None] | None:
+    form_factor = (psu.specs or {}).get("form_factor")
+    supported = _spec_list((case.specs or {}).get("psu_form_factor_supported"))
+    if form_factor and supported:
+        form = str(form_factor).upper()
+        ok = form in supported
+        return ok, None if ok else "电源尺寸与机箱支持范围不匹配"
+    return None
+
+
 def diagnose(parts: dict[str, ProductRecord], rules: dict[str, Any]) -> tuple[list[str], list[str]]:
     blocking: list[str] = []
     warnings: list[str] = []
@@ -85,27 +213,77 @@ def diagnose(parts: dict[str, ProductRecord], rules: dict[str, Any]) -> tuple[li
     case = parts.get("机箱")
 
     if cpu and mb:
-        if not _cpu_mb_ok(cpu.name, mb.name, rules.get("cpu_motherboard_rules") or []):
+        spec_ok = _spec_socket_ok(cpu, mb)
+        if spec_ok is False:
+            blocking.append("CPU 与主板插槽不匹配")
+        elif spec_ok is None and not _cpu_mb_ok(cpu.name, mb.name, rules.get("cpu_motherboard_rules") or []):
             blocking.append("CPU 与主板芯片组/平台可能不匹配")
 
     if mb and ram:
-        ok, msg = _ddr_ok(mb.name, ram.name, rules.get("memory_rules") or [])
-        if not ok and msg:
-            blocking.append(msg)
+        spec_result = _spec_memory_ok(mb, ram)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
+        else:
+            ok, msg = _ddr_ok(mb.name, ram.name, rules.get("memory_rules") or [])
+            if not ok and msg:
+                blocking.append(msg)
 
     if gpu and psu:
-        min_w, rec_w = _required_psu_watts(gpu, rules.get("power_rules") or [])
-        got = extract_psu_watts(psu.name)
-        if got is None:
-            warnings.append("无法在电源型号中解析额定功率，建议人工核对功耗余量。")
-        elif got < min_w:
-            blocking.append(f"电源额定功率可能不足（当前约 {got}W，建议不低于 {min_w}W）")
-        elif got < rec_w:
-            warnings.append(f"电源可用但余量一般（当前约 {got}W，更稳妥可选择约 {rec_w}W）")
+        spec_psu = _spec_psu_ok(cpu, gpu, psu)
+        if spec_psu is not None:
+            ok, block_msg, warn_msg = spec_psu
+            if not ok and block_msg:
+                blocking.append(block_msg)
+            elif warn_msg:
+                warnings.append(warn_msg)
+        else:
+            min_w, rec_w = _required_psu_watts(gpu, rules.get("power_rules") or [])
+            got = extract_psu_watts(psu.name)
+            if got is None:
+                warnings.append("无法在电源型号中解析额定功率，建议人工核对功耗余量。")
+            elif got < min_w:
+                blocking.append(f"电源额定功率可能不足（当前约 {got}W，建议不低于 {min_w}W）")
+            elif got < rec_w:
+                warnings.append(f"电源可用但余量一般（当前约 {got}W，更稳妥可选择约 {rec_w}W）")
+
+    if gpu and case:
+        spec_result = _spec_gpu_case_ok(gpu, case)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
+
+    if cpu and cooler:
+        spec_result = _spec_cooler_cpu_ok(cpu, cooler)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
 
     if cooler and case:
-        if cooler_has_360(cooler.name) and not case_supports_360(case.name, case.tags):
+        spec_result = _spec_cooler_case_ok(cooler, case)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
+        elif cooler_has_360(cooler.name) and not case_supports_360(case.name, case.tags):
             blocking.append("360 一体式水冷与机箱冷排支持不匹配（机箱可能无法安装 360 冷排）")
+
+    if mb and case:
+        spec_result = _spec_mb_case_ok(mb, case)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
+
+    if psu and case:
+        spec_result = _spec_psu_case_ok(psu, case)
+        if spec_result is not None:
+            ok, msg = spec_result
+            if not ok and msg:
+                blocking.append(msg)
 
     if cpu and cooler and is_k_series_cpu(cpu.name):
         cn = cooler.name
@@ -166,6 +344,15 @@ def validate_and_select(
 
     hard = specified_hard_map(parsed)
     locked_cat = set(hard.keys())
+    validation_debug = {
+        "initial_parts": {},
+        "diagnose_steps": [],
+        "fix_steps": [],
+        "budget_steps": [],
+        "final_parts": {},
+        "final_status": None,
+        "final_issues": [],
+    }
 
     idx: dict[str, int] = {cat: 0 for cat in sorted_by_category}
 
@@ -173,9 +360,21 @@ def validate_and_select(
         return {c: sorted_by_category[c][idx[c]] for c in sorted_by_category}
 
     # --- 兼容性修复（带索引推进）---
+    iteration = 0
     for _ in range(600):
+        iteration += 1
         parts = parts_now()
         blocking, warns = diagnose(parts, rules)
+        if not validation_debug["initial_parts"]:
+            validation_debug["initial_parts"] = _parts_snapshot(parts)
+        validation_debug["diagnose_steps"].append(
+            {
+                "iteration": iteration,
+                "issues": list(blocking),
+                "warnings": list(warns),
+                "parts": _parts_snapshot(parts),
+            }
+        )
         if not blocking:
             break
 
@@ -188,7 +387,17 @@ def validate_and_select(
             if ddr:
                 pick = _pick_cheapest_ram_ddr(ram_list, ddr)
                 if pick:
+                    before_part = parts.get("内存")
                     idx["内存"] = _sku_index(ram_list, pick.sku_id)
+                    validation_debug["fix_steps"].append(
+                        {
+                            "iteration": iteration,
+                            "issue": next((item for item in blocking if "内存类型" in item), blocking[0]),
+                            "action": "replace memory",
+                            "before": _part_snapshot(before_part),
+                            "after": _part_snapshot(pick),
+                        }
+                    )
                     progressed = True
             if not progressed:
                 mb_list = sorted_by_category["主板"]
@@ -199,7 +408,17 @@ def validate_and_select(
                     if cand_mbs:
                         cand_mbs.sort(key=lambda p: p.price)
                         pick_mb = cand_mbs[0]
+                        before_part = parts.get("主板")
                         idx["主板"] = _sku_index(mb_list, pick_mb.sku_id)
+                        validation_debug["fix_steps"].append(
+                            {
+                                "iteration": iteration,
+                                "issue": next((item for item in blocking if "内存类型" in item), blocking[0]),
+                                "action": "replace motherboard",
+                                "before": _part_snapshot(before_part),
+                                "after": _part_snapshot(pick_mb),
+                            }
+                        )
                         progressed = True
 
         elif any("CPU 与主板" in b or "平台" in b for b in blocking):
@@ -208,7 +427,17 @@ def validate_and_select(
                 cpu_name = parts["处理器"].name
                 pick_mb = _pick_cheapest_mb_for_cpu(mb_list, cpu_name, rules)
                 if pick_mb:
+                    before_part = parts.get("主板")
                     idx["主板"] = _sku_index(mb_list, pick_mb.sku_id)
+                    validation_debug["fix_steps"].append(
+                        {
+                            "iteration": iteration,
+                            "issue": next((item for item in blocking if "CPU 与主板" in item or "平台" in item), blocking[0]),
+                            "action": "replace motherboard",
+                            "before": _part_snapshot(before_part),
+                            "after": _part_snapshot(pick_mb),
+                        }
+                    )
                     progressed = True
 
         elif any("电源额定功率" in b for b in blocking):
@@ -217,7 +446,17 @@ def validate_and_select(
             psu_list = sorted_by_category["电源"]
             pick_psu = _pick_cheapest_psu_meeting(psu_list, min_w)
             if pick_psu and "电源" not in locked_cat:
+                before_part = parts.get("电源")
                 idx["电源"] = _sku_index(psu_list, pick_psu.sku_id)
+                validation_debug["fix_steps"].append(
+                    {
+                        "iteration": iteration,
+                        "issue": next((item for item in blocking if "电源额定功率" in item), blocking[0]),
+                        "action": "replace psu",
+                        "before": _part_snapshot(before_part),
+                        "after": _part_snapshot(pick_psu),
+                    }
+                )
                 progressed = True
 
         elif any("360" in b for b in blocking):
@@ -228,7 +467,17 @@ def validate_and_select(
                 pool = suitable if suitable else case_list
                 pool.sort(key=lambda p: p.price)
                 pick_case = pool[0]
+                before_part = parts.get("机箱")
                 idx["机箱"] = _sku_index(case_list, pick_case.sku_id)
+                validation_debug["fix_steps"].append(
+                    {
+                        "iteration": iteration,
+                        "issue": next((item for item in blocking if "360" in item), blocking[0]),
+                        "action": "replace case",
+                        "before": _part_snapshot(before_part),
+                        "after": _part_snapshot(pick_case),
+                    }
+                )
                 progressed = True
             elif "散热" not in locked_cat:
                 cool_list = sorted_by_category["散热"]
@@ -236,7 +485,17 @@ def validate_and_select(
                 if safe:
                     safe.sort(key=lambda p: p.price)
                     pick_c = safe[0]
+                    before_part = parts.get("散热")
                     idx["散热"] = _sku_index(cool_list, pick_c.sku_id)
+                    validation_debug["fix_steps"].append(
+                        {
+                            "iteration": iteration,
+                            "issue": next((item for item in blocking if "360" in item), blocking[0]),
+                            "action": "replace cooling",
+                            "before": _part_snapshot(before_part),
+                            "after": _part_snapshot(pick_c),
+                        }
+                    )
                     progressed = True
 
         if not progressed:
@@ -244,7 +503,18 @@ def validate_and_select(
 
     parts = parts_now()
     blocking, warns = diagnose(parts, rules)
+    validation_debug["diagnose_steps"].append(
+        {
+            "iteration": iteration + 1,
+            "issues": list(blocking),
+            "warnings": list(warns),
+            "parts": _parts_snapshot(parts),
+        }
+    )
     if blocking:
+        validation_debug["final_parts"] = _parts_snapshot(parts)
+        validation_debug["final_status"] = "failed_with_alternative"
+        validation_debug["final_issues"] = list(blocking)
         return ValidationOutcome(
             status="failed_with_alternative",
             final_build=[],
@@ -257,6 +527,7 @@ def validate_and_select(
                 "尝试放宽指定机型约束或更换平台组合。",
                 "降低显卡/处理器档位以减少主板与电源耦合约束。",
             ],
+            debug=validation_debug,
         )
 
     # --- 预算降配：>15% 超预算必须持续降配；禁止把「明显超标」组合当作最终方案 ---
@@ -268,7 +539,9 @@ def validate_and_select(
     if budget_max is not None:
         mx = float(budget_max)
 
+        budget_iteration = 0
         for _ in range(2500):
+            budget_iteration += 1
             parts = parts_now()
             total = _total_price(parts)
             if total <= mx * 1.15:
@@ -286,6 +559,9 @@ def validate_and_select(
 
                 before_cat = idx[cat]
                 psu_before = idx.get("电源", 0)
+                before_parts = parts_now()
+                before_total = _total_price(before_parts)
+                before_part = before_parts.get(cat)
 
                 idx[cat] += 1
                 trial = parts_now()
@@ -315,13 +591,27 @@ def validate_and_select(
                             idx["电源"] = psu_before
                             continue
 
+                after_parts = parts_now()
+                validation_debug["budget_steps"].append(
+                    {
+                        "iteration": budget_iteration,
+                        "total_before": before_total,
+                        "total_after": _total_price(after_parts),
+                        "budget_max": budget_max,
+                        "category": cat,
+                        "before": _part_snapshot(before_part),
+                        "after": _part_snapshot(after_parts.get(cat)),
+                    }
+                )
                 moved = True
                 break
 
             if not moved:
                 break
 
+        strict_budget_iteration = budget_iteration
         for _ in range(2500):
+            strict_budget_iteration += 1
             parts = parts_now()
             total = _total_price(parts)
             if total <= mx:
@@ -339,6 +629,9 @@ def validate_and_select(
 
                 before_cat = idx[cat]
                 psu_before = idx.get("电源", 0)
+                before_parts = parts_now()
+                before_total = _total_price(before_parts)
+                before_part = before_parts.get(cat)
 
                 idx[cat] += 1
                 trial = parts_now()
@@ -368,6 +661,18 @@ def validate_and_select(
                             idx["电源"] = psu_before
                             continue
 
+                after_parts = parts_now()
+                validation_debug["budget_steps"].append(
+                    {
+                        "iteration": strict_budget_iteration,
+                        "total_before": before_total,
+                        "total_after": _total_price(after_parts),
+                        "budget_max": budget_max,
+                        "category": cat,
+                        "before": _part_snapshot(before_part),
+                        "after": _part_snapshot(after_parts.get(cat)),
+                    }
+                )
                 moved = True
                 break
 
@@ -377,8 +682,11 @@ def validate_and_select(
     parts = parts_now()
     blocking_final, warns = diagnose(parts, rules)
     total = _total_price(parts)
+    validation_debug["final_parts"] = _parts_snapshot(parts)
+    validation_debug["final_issues"] = list(blocking_final)
 
     if blocking_final:
+        validation_debug["final_status"] = "failed_with_alternative"
         return ValidationOutcome(
             status="failed_with_alternative",
             final_build=[],
@@ -390,6 +698,7 @@ def validate_and_select(
             alternative_suggestions=[
                 "当前组合在预算/兼容性约束下难以闭环，请放宽指定机型或调整平台搭配。",
             ],
+            debug=validation_debug,
         )
 
     budget_state = "within_budget"
@@ -397,6 +706,7 @@ def validate_and_select(
     if budget_max is not None:
         mx = float(budget_max)
         if total > mx * 1.15:
+            validation_debug["final_status"] = "failed_with_alternative"
             return ValidationOutcome(
                 status="failed_with_alternative",
                 final_build=[],
@@ -409,6 +719,7 @@ def validate_and_select(
                     "提高预算上限，或明确接受降低显卡/显示器等核心件档位。",
                     "临时去掉海景房/RGB/风扇等非性能投入，优先保证显卡与电源匹配。",
                 ],
+                debug=validation_debug,
             )
         if total > mx:
             budget_state = "slightly_over"
@@ -428,6 +739,7 @@ def validate_and_select(
     status = "success"
     if need_confirm:
         status = "need_user_confirmation"
+    validation_debug["final_status"] = status
 
     return ValidationOutcome(
         status=status,
@@ -441,4 +753,5 @@ def validate_and_select(
         risk_check={"status": "pass_with_notes" if warns else "pass", "warnings": warns},
         unmet_constraints=[],
         alternative_suggestions=[],
+        debug=validation_debug,
     )

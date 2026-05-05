@@ -1,5 +1,171 @@
 {
   "version": "v1",
-  "description": "需求冲突检测与降级/消解策略（无硬件型号）。初始占位。",
-  "rules": []
+  "status": "runtime_enabled",
+  "runtime_scope": "first_layer_only",
+  "description": "第一层需求理解知识库中的需求冲突规则索引。用于在第一层需求理解完成后生成轻量冲突提示，不接入第二层选件逻辑。",
+  "rules": [
+    {
+      "rule_id": "low_budget_4k_aaa",
+      "title": "低预算与 4K 3A 高画质冲突",
+      "dimensions": ["performance", "price"],
+      "conditions": [
+        "用户目标包含 4K 或高画质 3A 游戏",
+        "预算落在低到中低档位"
+      ],
+      "severity": "high",
+      "message": "4K 高画质 3A 游戏通常需要更高显卡预算，低预算下很难同时满足画质和帧率目标。",
+      "suggested_resolutions": [
+        "提高预算",
+        "降低分辨率到 1080P / 2K",
+        "降低画质目标",
+        "优先保障显卡，压缩外观溢价"
+      ]
+    },
+    {
+      "rule_id": "low_budget_ai_training",
+      "title": "低预算与 AI 训练需求冲突",
+      "dimensions": ["performance", "price"],
+      "conditions": [
+        "用户目标包含 AI 训练或深度学习训练",
+        "预算不足以支撑高显卡与大内存"
+      ],
+      "severity": "high",
+      "message": "AI 训练通常需要高性能显卡、大内存和稳定供电，低预算下容易无法满足训练需求。",
+      "suggested_resolutions": [
+        "提高预算",
+        "把目标从训练放宽到推理或轻量实验",
+        "优先保护 GPU、RAM、PSU 预算",
+        "压缩机箱、RGB、全白等外观成本"
+      ]
+    },
+    {
+      "rule_id": "budget_vs_white_panoramic",
+      "title": "预算与白色海景房外观溢价冲突",
+      "dimensions": ["appearance", "price"],
+      "conditions": [
+        "用户要求白色海景房或类似高外观溢价方案",
+        "预算存在明显上限"
+      ],
+      "severity": "medium",
+      "message": "白色海景房通常会提高机箱、散热和部分内部配件的价格，可能压缩性能预算。",
+      "suggested_resolutions": [
+        "保留白色机箱，放宽内部配件颜色",
+        "保留玻璃侧透，放宽双仓或背插要求",
+        "提高预算",
+        "压缩 RGB 和高端风扇数量"
+      ]
+    },
+    {
+      "rule_id": "high_performance_vs_small_case",
+      "title": "高性能需求与小机箱约束冲突",
+      "dimensions": ["performance", "appearance", "other"],
+      "conditions": [
+        "用户要求高性能 GPU / CPU 或高负载场景",
+        "用户同时要求 ITX 或极小机箱"
+      ],
+      "severity": "high",
+      "message": "高性能配置在小机箱中会遇到散热、显卡长度、电源规格和装机兼容性压力。",
+      "suggested_resolutions": [
+        "从 ITX 放宽到紧凑 M-ATX",
+        "优先保留性能，降低体积极限要求",
+        "为散热、电源和机箱预留更多预算"
+      ]
+    },
+    {
+      "rule_id": "high_performance_vs_low_noise",
+      "title": "高性能需求与低噪需求冲突",
+      "dimensions": ["performance", "appearance", "other"],
+      "conditions": [
+        "用户要求高性能持续释放",
+        "用户同时要求强静音或夜间低噪"
+      ],
+      "severity": "medium",
+      "message": "高性能持续释放往往需要更强风量和更高散热能力，低噪需求会提高散热和电源成本，也可能限制性能释放。",
+      "suggested_resolutions": [
+        "保留基础低噪，放弃极致静音",
+        "提高散热和电源预算",
+        "适度降低性能目标"
+      ]
+    },
+    {
+      "rule_id": "host_only_vs_include_monitor",
+      "title": "只要主机与包含显示器范围冲突",
+      "dimensions": ["other", "price"],
+      "conditions": [
+        "用户同时表达只要主机",
+        "用户同时表达包含显示器或一整套"
+      ],
+      "severity": "medium",
+      "message": "预算范围表达存在冲突，需要确认预算是仅主机还是包含显示器与外设。",
+      "suggested_resolutions": [
+        "优先追问预算范围",
+        "拆分主机预算和外设预算",
+        "若不确定则按总预算压力更高处理"
+      ]
+    },
+    {
+      "rule_id": "no_rgb_vs_rgb_appearance",
+      "title": "不要 RGB 与炫光外观偏好冲突",
+      "dimensions": ["appearance"],
+      "conditions": [
+        "用户明确不要 RGB 或不要灯",
+        "用户又表达电竞风、炫酷灯效或 RGB 偏好"
+      ],
+      "severity": "low",
+      "message": "用户在外观表达中同时出现无光和炫光倾向，需要澄清是要电竞风但无灯，还是接受低调灯效。",
+      "suggested_resolutions": [
+        "优先保留 no_rgb 作为硬约束",
+        "可选无光电竞风或低调侧透方案",
+        "必要时追问是否接受低调单色灯"
+      ]
+    },
+    {
+      "rule_id": "used_or_low_price_vs_high_stability",
+      "title": "极致低价或二手策略与高稳定性需求冲突",
+      "dimensions": ["other", "price"],
+      "conditions": [
+        "用户希望极致压价或接受二手低价策略",
+        "用户同时要求高稳定性、低折腾、整机质保或正规渠道"
+      ],
+      "severity": "medium",
+      "message": "低价策略通常依赖更激进的压缩或二手件，而高稳定性和售后诉求会反向提高成本。",
+      "suggested_resolutions": [
+        "优先确认是价格优先还是稳定优先",
+        "若稳定优先则限制二手和风险件",
+        "提高预算或压缩非核心外观要求"
+      ]
+    },
+    {
+      "rule_id": "high_power_config_vs_low_psu",
+      "title": "高功耗配置与低电源预算冲突",
+      "dimensions": ["performance", "price", "selection"],
+      "conditions": [
+        "用户性能目标需要高功耗 GPU / CPU",
+        "预算策略对 PSU 压缩过强或升级空间不足"
+      ],
+      "severity": "high",
+      "message": "高功耗配置不能依赖过低瓦数或低质量电源，否则会带来稳定性和升级风险。",
+      "suggested_resolutions": [
+        "提高 PSU 预算优先级",
+        "保留电源功率余量",
+        "必要时下调显卡或 CPU 档位"
+      ]
+    },
+    {
+      "rule_id": "multitask_streaming_editing_vs_low_memory",
+      "title": "多任务直播剪辑与低内存策略冲突",
+      "dimensions": ["performance", "price"],
+      "conditions": [
+        "用户目标包含多任务、直播、剪辑或本地模型等高内存场景",
+        "预算策略对内存压缩过强"
+      ],
+      "severity": "high",
+      "message": "直播、剪辑、多任务和本地模型都容易对内存容量提出更高要求，过低内存会显著影响体验。",
+      "suggested_resolutions": [
+        "优先保护 RAM 预算",
+        "压缩 RGB、机箱外观和非核心主板溢价",
+        "必要时降低其他性能目标"
+      ]
+    }
+  ]
 }

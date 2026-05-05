@@ -13,6 +13,7 @@ from pc_build_agent.schemas.performance_schema import (
     PerformanceOutput,
     PerformanceRule,
 )
+from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 if TYPE_CHECKING:
     from pc_build_agent.services.deepseek_client import DeepSeekClient
@@ -69,10 +70,22 @@ TARGET_PATTERNS = {
 
 
 class PerformanceRequirementAgent:
-    def __init__(self, rule_path: str | Path | None = None, llm: "DeepSeekClient" | None = None):
-        default_rule_path = Path(__file__).resolve().parents[1] / "rules" / "performance_rules.json"
-        self.rule_path = Path(rule_path or default_rule_path)
-        self.rules = self.load_rules(self.rule_path)
+    def __init__(
+        self,
+        rule_path: str | Path | None = None,
+        llm: "DeepSeekClient" | None = None,
+        knowledge_repo: RequirementKnowledgeRepository | None = None,
+    ):
+        self.rule_path = Path(rule_path) if rule_path is not None else None
+        self.capability_weight_profiles: list[dict[str, Any]] = []
+        if self.rule_path is not None:
+            self.rules = self.load_rules(self.rule_path)
+            if knowledge_repo is not None:
+                self.capability_weight_profiles = knowledge_repo.get_capability_weight_profiles()
+        else:
+            repo = knowledge_repo or RequirementKnowledgeRepository()
+            self.rules = self.load_rule_items(repo.get_rules("performance"))
+            self.capability_weight_profiles = repo.get_capability_weight_profiles()
         self.llm = llm
 
     @staticmethod
@@ -87,6 +100,9 @@ class PerformanceRequirementAgent:
 
     def load_rules(self, rule_path: Path) -> list[PerformanceRule]:
         raw = json.loads(rule_path.read_text(encoding="utf-8"))
+        return self.load_rule_items(raw)
+
+    def load_rule_items(self, raw: Any) -> list[PerformanceRule]:
         return [self._validate_model(PerformanceRule, item) for item in raw]
 
     def _keyword_hit(self, normalized_text: str, compact_text: str, keyword: str) -> bool:
@@ -150,7 +166,10 @@ class PerformanceRequirementAgent:
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_text},
         ]
-        raw = self.llm.chat_json(messages, step="performance_extraction")
+        try:
+            raw = self.llm.chat_json(messages, step="performance_extraction")
+        except Exception:
+            return None
         return self._validate_model(PerformanceLlmExtraction, raw)
 
     def _merge_with_llm(self, rule_matches: list[dict[str, Any]], llm_extraction: PerformanceLlmExtraction | None) -> list[dict[str, Any]]:
@@ -316,8 +335,90 @@ class PerformanceRequirementAgent:
             missing_information=missing_information,
             performance_targets=targets,
         )
+        self._apply_capability_profiles(output)
         output.performance_summary = self._build_summary(output)
         return self._model_to_dict(PerformanceAgentOutput(performance=output))
+
+    def _apply_capability_profiles(self, output: PerformanceOutput) -> None:
+        matched_profiles = self._matched_capability_profiles(output)
+        if not matched_profiles:
+            return
+
+        capabilities = list(output.capabilities or [])
+        reference_component_weights = dict(output.reference_component_weights or {})
+        capability_profile_ids = list(output.capability_profile_ids or [])
+        warnings = list(output.warnings or [])
+
+        for profile in matched_profiles:
+            profile_id = str(profile.get("profile_id") or "")
+            if profile_id and profile_id not in capability_profile_ids:
+                capability_profile_ids.append(profile_id)
+
+            for capability in profile.get("capabilities") or []:
+                if capability and capability not in capabilities:
+                    capabilities.append(capability)
+
+            for component, value in (profile.get("component_weights") or {}).items():
+                if not isinstance(value, int):
+                    continue
+                existing = int(reference_component_weights.get(component, 0) or 0)
+                if value > existing:
+                    reference_component_weights[component] = value
+
+            for note in profile.get("notes") or []:
+                if note and note not in warnings:
+                    warnings.append(note)
+
+        output.capabilities = capabilities
+        output.reference_component_weights = reference_component_weights
+        output.capability_profile_ids = capability_profile_ids
+        output.warnings = warnings
+
+    def _matched_capability_profiles(self, output: PerformanceOutput) -> list[dict[str, Any]]:
+        if not self.capability_weight_profiles:
+            return []
+
+        matched: list[dict[str, Any]] = []
+        primary_usage = set(output.primary_usage or [])
+        secondary_usage = set(output.secondary_usage or [])
+        matched_keywords = {str(item).lower() for item in output.matched_keywords or []}
+
+        for profile in self.capability_weight_profiles:
+            profile_id = str(profile.get("profile_id") or "")
+            if self._profile_matches(profile_id, primary_usage, secondary_usage, matched_keywords):
+                matched.append(profile)
+        return matched
+
+    def _profile_matches(
+        self,
+        profile_id: str,
+        primary_usage: set[str],
+        secondary_usage: set[str],
+        matched_keywords: set[str],
+    ) -> bool:
+        if profile_id == "aaa_gaming":
+            return "aaa_gaming" in secondary_usage
+        if profile_id == "fps_esports":
+            return "fps_esports" in secondary_usage
+        if profile_id == "live_streaming":
+            return "streaming" in primary_usage or "game_streaming" in secondary_usage
+        if profile_id == "video_editing":
+            return bool({"professional_video_editing", "light_video_editing"} & secondary_usage)
+        if profile_id == "ai_training":
+            return "deep_learning_training" in secondary_usage or "ai训练" in matched_keywords
+        if profile_id == "local_llm_inference":
+            return "local_llm_inference" in secondary_usage
+        if profile_id == "office_study":
+            return bool({"general_office", "general_study"} & secondary_usage) or bool({"office", "study"} & primary_usage)
+        if profile_id == "programming_development":
+            return "programming_development" in secondary_usage
+        if profile_id == "data_analysis_modeling":
+            return "data_analysis_modeling" in secondary_usage
+        if profile_id == "cad_3d_modeling":
+            return bool({"cad_industrial_design", "3d_modeling_rendering"} & secondary_usage)
+        if profile_id == "general_home_use":
+            return not secondary_usage and not primary_usage
+        return False
 
     def apply_other_signals(self, performance_result: dict[str, Any], other_result: dict[str, Any]) -> dict[str, Any]:
         result = dict(performance_result or {})
