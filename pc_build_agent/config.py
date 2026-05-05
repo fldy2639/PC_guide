@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     pc_guide_db_path: Path = _ROOT.parent / "data" / "pc_guide_sessions.sqlite"
     # Mock 商品池 JSON：相对包内 data 目录
     pc_guide_products_path: Path = _ROOT / "data" / "products.json"
+    # 第二层真实商品目录：hardware_catalog/v1/data
+    pc_guide_hardware_catalog_path: Path = _ROOT / "database" / "hardware_catalog" / "v1" / "data"
     # 规则库 JSON：功耗、板型、冷排等校验规则
     pc_guide_rules_path: Path = _ROOT / "data" / "rules.json"
     # 性能需求理解规则库 JSON：使用场景、软件/游戏、性能重点、配件权重

@@ -3,22 +3,28 @@
   "$id": "https://pc_guide.local/schemas/hardware_catalog/v1/case.schema.json",
   "title": "Case",
   "type": "object",
-  "additionalProperties": false,
-  "required": ["id", "brand", "model", "motherboard_support", "max_gpu_length_mm", "max_cooler_height_mm"],
+  "additionalProperties": true,
+  "required": ["id", "sku_id", "category", "component_type", "name", "price", "current_price", "tags"],
   "properties": {
     "id": { "type": "string" },
-    "brand": { "type": "string" },
-    "model": { "type": "string" },
-    "motherboard_support": {
-      "type": "array",
-      "items": { "type": "string", "enum": ["Mini-ITX", "M-ATX", "ATX", "E-ATX"] }
-    },
-    "max_gpu_length_mm": { "type": "integer", "minimum": 1 },
-    "max_cooler_height_mm": { "type": ["integer", "null"] },
-    "psu_form_factor": { "type": "array", "items": { "type": "string" } },
-    "volume_l": { "type": ["number", "null"] },
-    "panel_type": { "type": ["string", "null"] },
-    "fan_slots": { "type": ["integer", "null"] },
-    "notes": { "type": ["string", "null"] }
+    "sku_id": { "type": "string" },
+    "category": { "type": "string" },
+    "component_type": { "type": "string" },
+    "brand": { "type": ["string", "null"] },
+    "model": { "type": ["string", "null"] },
+    "name": { "type": "string" },
+    "price": { "type": ["number", "integer"] },
+    "current_price": { "type": ["number", "integer", "null"] },
+    "jd_url": { "type": ["string", "null"] },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "supported_motherboard_form_factors": { "type": ["array", "string", "null"], "items": { "type": "string" } },
+    "max_gpu_length_mm": { "type": ["number", "integer", "null"] },
+    "max_cpu_cooler_height_mm": { "type": ["number", "integer", "null"] },
+    "radiator_support": { "type": ["array", "string", "null"], "items": { "type": "string" } },
+    "psu_form_factor_supported": { "type": ["array", "string", "null"], "items": { "type": "string" } },
+    "case_style": { "type": ["string", "null"] },
+    "case_size_class": { "type": ["string", "null"] },
+    "front_type_c": { "type": ["boolean", "string", "null"] },
+    "airflow_score": { "type": ["number", "integer", "null"] }
   }
 }
