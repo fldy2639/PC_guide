@@ -304,6 +304,83 @@ def _sku_index(lst: list[ProductRecord], sku_id: str) -> int:
     return 0
 
 
+def _candidate_pool(sorted_by_category: dict[str, list[ProductRecord]], category: str, limit: int) -> list[ProductRecord | None]:
+    items = list(sorted_by_category.get(category) or [])[:limit]
+    return items or [None]
+
+
+def _first_compatible_build(
+    sorted_by_category: dict[str, list[ProductRecord]],
+    rules: dict[str, Any],
+    limit: int = 8,
+) -> dict[str, ProductRecord] | None:
+    cpus = _candidate_pool(sorted_by_category, "处理器", limit)
+    motherboards = _candidate_pool(sorted_by_category, "主板", limit)
+    rams = _candidate_pool(sorted_by_category, "内存", limit)
+    gpus = _candidate_pool(sorted_by_category, "显卡", limit)
+    cases = _candidate_pool(sorted_by_category, "机箱", limit)
+    coolers = _candidate_pool(sorted_by_category, "散热", limit)
+    psus = _candidate_pool(sorted_by_category, "电源", limit)
+    optional_categories = [
+        category
+        for category in ["硬盘", "风扇", "显示器"]
+        if sorted_by_category.get(category)
+    ]
+
+    for cpu in cpus:
+        for mb in motherboards:
+            parts = {k: v for k, v in {"处理器": cpu, "主板": mb}.items() if v is not None}
+            if diagnose(parts, rules)[0]:
+                continue
+            for ram in rams:
+                parts = {k: v for k, v in {"处理器": cpu, "主板": mb, "内存": ram}.items() if v is not None}
+                if diagnose(parts, rules)[0]:
+                    continue
+                for gpu in gpus:
+                    parts = {k: v for k, v in {"处理器": cpu, "主板": mb, "内存": ram, "显卡": gpu}.items() if v is not None}
+                    if diagnose(parts, rules)[0]:
+                        continue
+                    for case in cases:
+                        parts = {k: v for k, v in {"处理器": cpu, "主板": mb, "内存": ram, "显卡": gpu, "机箱": case}.items() if v is not None}
+                        if diagnose(parts, rules)[0]:
+                            continue
+                        for cooler in coolers:
+                            parts = {
+                                k: v
+                                for k, v in {
+                                    "处理器": cpu,
+                                    "主板": mb,
+                                    "内存": ram,
+                                    "显卡": gpu,
+                                    "机箱": case,
+                                    "散热": cooler,
+                                }.items()
+                                if v is not None
+                            }
+                            if diagnose(parts, rules)[0]:
+                                continue
+                            for psu in psus:
+                                parts = {
+                                    k: v
+                                    for k, v in {
+                                        "处理器": cpu,
+                                        "主板": mb,
+                                        "内存": ram,
+                                        "显卡": gpu,
+                                        "机箱": case,
+                                        "散热": cooler,
+                                        "电源": psu,
+                                    }.items()
+                                    if v is not None
+                                }
+                                if diagnose(parts, rules)[0]:
+                                    continue
+                                for category in optional_categories:
+                                    parts[category] = sorted_by_category[category][0]
+                                return parts
+    return None
+
+
 def _pick_cheapest_psu_meeting(psus: list[ProductRecord], min_w: int) -> ProductRecord | None:
     candidates = []
     for p in psus:
@@ -333,6 +410,19 @@ def _pick_cheapest_mb_for_cpu(mbs: list[ProductRecord], cpu_name: str, rules: di
     return pool[0]
 
 
+def _pick_cheapest_mb_for_cpu_part(mbs: list[ProductRecord], cpu: ProductRecord, rules: dict[str, Any]) -> ProductRecord | None:
+    cpu_socket = (cpu.specs or {}).get("socket")
+    if cpu_socket:
+        compatible = [
+            p for p in mbs
+            if (p.specs or {}).get("socket") and str((p.specs or {}).get("socket")).upper() == str(cpu_socket).upper()
+        ]
+        if compatible:
+            compatible.sort(key=lambda p: p.price)
+            return compatible[0]
+    return _pick_cheapest_mb_for_cpu(mbs, cpu.name, rules)
+
+
 def validate_and_select(
     parsed: ParsedRequirements,
     sorted_by_category: dict[str, list[ProductRecord]],
@@ -354,10 +444,15 @@ def validate_and_select(
         "final_issues": [],
     }
 
-    idx: dict[str, int] = {cat: 0 for cat in sorted_by_category}
+    idx: dict[str, int] = {cat: 0 for cat, items in sorted_by_category.items() if items}
 
     def parts_now() -> dict[str, ProductRecord]:
-        return {c: sorted_by_category[c][idx[c]] for c in sorted_by_category}
+        return {c: sorted_by_category[c][idx[c]] for c in idx if sorted_by_category.get(c)}
+
+    def apply_parts(parts: dict[str, ProductRecord]) -> None:
+        for category, part in parts.items():
+            if category in sorted_by_category:
+                idx[category] = _sku_index(sorted_by_category[category], part.sku_id)
 
     # --- 兼容性修复（带索引推进）---
     iteration = 0
@@ -424,11 +519,12 @@ def validate_and_select(
         elif any("CPU 与主板" in b or "平台" in b for b in blocking):
             if "主板" not in locked_cat:
                 mb_list = sorted_by_category["主板"]
-                cpu_name = parts["处理器"].name
-                pick_mb = _pick_cheapest_mb_for_cpu(mb_list, cpu_name, rules)
+                pick_mb = _pick_cheapest_mb_for_cpu_part(mb_list, parts["处理器"], rules)
                 if pick_mb:
                     before_part = parts.get("主板")
-                    idx["主板"] = _sku_index(mb_list, pick_mb.sku_id)
+                    before_idx = idx["主板"]
+                    next_idx = _sku_index(mb_list, pick_mb.sku_id)
+                    idx["主板"] = next_idx
                     validation_debug["fix_steps"].append(
                         {
                             "iteration": iteration,
@@ -438,7 +534,7 @@ def validate_and_select(
                             "after": _part_snapshot(pick_mb),
                         }
                     )
-                    progressed = True
+                    progressed = next_idx != before_idx
 
         elif any("电源额定功率" in b for b in blocking):
             gpu = parts["显卡"]
@@ -499,6 +595,20 @@ def validate_and_select(
                     progressed = True
 
         if not progressed:
+            compatible_parts = _first_compatible_build(sorted_by_category, rules)
+            if compatible_parts:
+                apply_parts(compatible_parts)
+                validation_debug["fix_steps"].append(
+                    {
+                        "iteration": iteration,
+                        "issue": "compatibility_search",
+                        "action": "replace build with first compatible candidate combination",
+                        "after": _parts_snapshot(compatible_parts),
+                    }
+                )
+                progressed = True
+
+        if not progressed:
             break
 
     parts = parts_now()
@@ -550,6 +660,8 @@ def validate_and_select(
             moved = False
             for cat in downgrade_order:
                 if cat not in sorted_by_category:
+                    continue
+                if cat not in idx:
                     continue
                 if cat in locked_cat:
                     continue
@@ -621,6 +733,8 @@ def validate_and_select(
             for cat in downgrade_order:
                 if cat not in sorted_by_category:
                     continue
+                if cat not in idx:
+                    continue
                 if cat in locked_cat:
                     continue
                 lst = sorted_by_category[cat]
@@ -681,6 +795,20 @@ def validate_and_select(
 
     parts = parts_now()
     blocking_final, warns = diagnose(parts, rules)
+    if blocking_final:
+        compatible_parts = _first_compatible_build(sorted_by_category, rules, limit=12)
+        if compatible_parts:
+            apply_parts(compatible_parts)
+            parts = parts_now()
+            blocking_final, warns = diagnose(parts, rules)
+            validation_debug["fix_steps"].append(
+                {
+                    "iteration": iteration + 1,
+                    "issue": "final_compatibility_search",
+                    "action": "replace build with compatible candidate combination",
+                    "after": _parts_snapshot(parts),
+                }
+            )
     total = _total_price(parts)
     validation_debug["final_parts"] = _parts_snapshot(parts)
     validation_debug["final_issues"] = list(blocking_final)

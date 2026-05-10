@@ -188,6 +188,32 @@ def test_specified_parts_locks_gpu_candidates_to_rtx():
     assert all("rtx" in item.name.lower() for item in result.sorted_by_category["显卡"])
 
 
+def test_intel_nvidia_constraints_filter_out_arc_gpu():
+    profile = {
+        "selection_context": {
+            "must_satisfy": [
+                {"component": "gpu", "field": "name", "operator": "contains_any", "value": ["NVIDIA", "英伟达", "GeForce", "RTX", "GTX"]},
+                {"component": "cpu", "field": "brand", "operator": "contains", "value": "英特尔"},
+            ],
+            "prefer_satisfy": [],
+            "avoid": [{"component": "gpu", "field": "name", "operator": "contains_any", "value": ["Intel Arc", "Arc ", "锐炫", "B580", "B570", "A770", "A750", "RX", "RADEON"]}],
+        },
+        "specified_parts": [],
+    }
+    pool = [
+        _product("显卡", "gpu-rtx", "NVIDIA GeForce RTX 4070 Super", 4499, {"vram_gb": 12}),
+        _product("显卡", "gpu-arc", "蓝戟 Intel Arc B580 Photon 12G", 1999, {"vram_gb": 12}),
+        _product("显卡", "gpu-rx", "AMD RADEON RX 9070 XT", 5799, {"vram_gb": 16}),
+        _product("处理器", "cpu-intel", "英特尔 i9-14900KF", 3369, {"brand": "英特尔"}),
+        _product("处理器", "cpu-amd", "AMD 锐龙9 9950X", 3619, {"brand": "AMD"}),
+    ]
+
+    result = PartsSelectionAgent().select({"requirement_profile": profile}, pool)
+
+    assert [item.sku_id for item in result.sorted_by_category["显卡"]] == ["gpu-rtx"]
+    assert [item.sku_id for item in result.sorted_by_category["处理器"]] == ["cpu-intel"]
+
+
 def test_prefer_satisfy_bonus_only_boosts_not_filters():
     constraint = [{"component": "case", "field": "case_style", "operator": "contains", "value": "海景房"}]
     panoramic = _product("机箱", "case-pan", "海景房机箱", 299, {"case_style": "海景房"})

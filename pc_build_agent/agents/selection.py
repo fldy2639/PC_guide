@@ -371,6 +371,20 @@ def matches_structured_constraint(product: ProductRecord, constraint: dict) -> b
         return needle in haystack
     if operator == "not_contains":
         return needle not in haystack
+    if operator == "contains_any":
+        values = value if isinstance(value, list) else [value]
+        needles = [str(item).lower() for item in values]
+        if isinstance(actual, list):
+            actual_text = " ".join(str(item).lower() for item in actual)
+            return any(needle in actual_text for needle in needles)
+        return any(needle in haystack for needle in needles)
+    if operator == "not_contains_any":
+        values = value if isinstance(value, list) else [value]
+        needles = [str(item).lower() for item in values]
+        if isinstance(actual, list):
+            actual_text = " ".join(str(item).lower() for item in actual)
+            return all(needle not in actual_text for needle in needles)
+        return all(needle not in haystack for needle in needles)
     if operator == "in":
         values = value if isinstance(value, list) else [value]
         normalized_values = {str(item).lower() for item in values}

@@ -100,3 +100,44 @@ def test_validate_and_select_rejects_invalid_structured_combo():
     assert outcome.status == "failed_with_alternative"
     assert outcome.final_build == []
     assert outcome.compatibility_check["status"] == "fail"
+
+
+def test_validate_and_select_searches_for_compatible_candidate_combo():
+    parsed = _parsed()
+    cpu = _product("处理器", "cpu", "AM5 CPU", 1500, {"socket": "AM5", "tdp_w": 105})
+    bad_mb = _product("主板", "mb-bad", "LGA1700 主板", 700, {"socket": "LGA1700", "memory_type": "DDR5", "form_factor": "ATX"})
+    good_mb = _product("主板", "mb-good", "AM5 主板", 900, {"socket": "AM5", "memory_type": "DDR5", "form_factor": "ATX"})
+    ram = _product("内存", "ram", "DDR5 32G", 450, {"memory_type": "DDR5"})
+    gpu = _product("显卡", "gpu", "短显卡", 2800, {"gpu_length_mm": 280, "tbp_w": 220, "recommended_psu_w": 650})
+    psu = _product("电源", "psu", "750W 电源", 500, {"wattage_w": 750, "form_factor": "ATX"})
+    cooler = _product("散热", "cooler", "AM5 风冷", 180, {"supported_sockets": ["AM5"], "cooler_height_mm": 150})
+    case = _product(
+        "机箱",
+        "case",
+        "ATX 机箱",
+        280,
+        {
+            "supported_motherboard_form_factors": ["ATX"],
+            "max_gpu_length_mm": 340,
+            "max_cpu_cooler_height_mm": 165,
+            "psu_form_factor_supported": ["ATX"],
+        },
+    )
+
+    outcome = validate_and_select(
+        parsed,
+        {
+            "处理器": [cpu],
+            "主板": [bad_mb, good_mb],
+            "内存": [ram],
+            "显卡": [gpu],
+            "电源": [psu],
+            "散热": [cooler],
+            "机箱": [case],
+        },
+        rules={"cpu_motherboard_rules": [], "memory_rules": [], "power_rules": []},
+    )
+
+    assert outcome.status == "success"
+    assert outcome.compatibility_check["status"] == "pass"
+    assert any(line.sku_id == "mb-good" for line in outcome.final_build)

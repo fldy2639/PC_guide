@@ -9,6 +9,7 @@ from pc_build_agent.schemas.requirement_profile_schema import (
     dedupe_list,
     dump_model,
 )
+from pc_build_agent.agents.selection_constraint_translator import SelectionConstraintTranslator
 from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
 
@@ -26,6 +27,9 @@ class RequirementOrchestrator:
         self.price_agent = price_agent
         self.other_agent = other_agent
         self.knowledge_repo = knowledge_repo or RequirementKnowledgeRepository()
+        self.selection_constraint_translator = SelectionConstraintTranslator(
+            self.knowledge_repo.get_selection_constraint_mapping()
+        )
 
     def analyze(self, user_text: str) -> dict:
         performance = self.performance_agent.analyze(user_text)
@@ -119,6 +123,7 @@ class RequirementOrchestrator:
                 appearance_data,
                 price_data,
                 other_data,
+                user_text=user_text,
             ),
             selection_context=self.build_selection_context(
                 performance_data,
@@ -126,6 +131,7 @@ class RequirementOrchestrator:
                 price_data,
                 other_data,
                 conflict_warnings=conflict_warnings,
+                user_text=user_text,
             ),
             missing_information=self.merge_missing_information(
                 performance_data,
@@ -143,23 +149,24 @@ class RequirementOrchestrator:
         price: dict,
         other: dict,
         conflict_warnings: list[dict[str, Any]] | None = None,
+        user_text: str = "",
     ) -> SelectionContext:
         price_ctx = price.get("selection_context_for_parts_agent", {})
         other_ctx = other.get("constraints_for_selection_agent", {})
         appearance_ctx = appearance.get("constraints_for_selection_agent", {})
         performance_ctx = performance.get("constraints_for_selection_agent", {})
 
-        must_satisfy: list[str] = []
+        must_satisfy: list[Any] = []
         must_satisfy += price_ctx.get("must_satisfy", [])
         must_satisfy += other_ctx.get("must_have_features", [])
         must_satisfy += performance_ctx.get("must_have_features", [])
 
-        prefer_satisfy: list[str] = []
+        prefer_satisfy: list[Any] = []
         prefer_satisfy += price_ctx.get("prefer_satisfy", [])
         prefer_satisfy += other_ctx.get("prefer_features", [])
         prefer_satisfy += appearance_ctx.get("prefer_features", [])
 
-        avoid: list[str] = []
+        avoid: list[Any] = []
         avoid += price_ctx.get("avoid", [])
         avoid += other_ctx.get("avoid_features", [])
         avoid += appearance_ctx.get("avoid_features", [])
@@ -183,16 +190,28 @@ class RequirementOrchestrator:
         if conflict_warnings:
             cross_module_signals["conflict_warnings"] = conflict_warnings
 
-        return SelectionContext(
-            must_satisfy=dedupe_list(must_satisfy),
-            prefer_satisfy=dedupe_list(prefer_satisfy),
-            avoid=dedupe_list(avoid),
-            protected_components=dedupe_list(protected_components),
-            cost_cut_components=dedupe_list(cost_cut_components),
-            budget_context=budget_context,
-            compatibility_checks=dedupe_list(compatibility_checks),
-            cross_module_signals=cross_module_signals,
+        return self.normalize_selection_context(
+            SelectionContext(
+                must_satisfy=dedupe_list(must_satisfy),
+                prefer_satisfy=dedupe_list(prefer_satisfy),
+                avoid=dedupe_list(avoid),
+                protected_components=dedupe_list(protected_components),
+                cost_cut_components=dedupe_list(cost_cut_components),
+                budget_context=budget_context,
+                compatibility_checks=dedupe_list(compatibility_checks),
+                cross_module_signals=cross_module_signals,
+            ),
+            {
+                "original_user_text": user_text,
+                "performance": performance,
+                "appearance": appearance,
+                "price": price,
+                "other": other,
+            },
         )
+
+    def normalize_selection_context(self, context: SelectionContext, profile: dict[str, Any] | None = None) -> SelectionContext:
+        return self.selection_constraint_translator.compile_context(context, profile=profile)
 
     def build_capability_profile(
         self,
@@ -200,6 +219,7 @@ class RequirementOrchestrator:
         appearance: dict[str, Any],
         price: dict[str, Any],
         other: dict[str, Any],
+        user_text: str = "",
     ) -> dict[str, Any]:
         scenario_tags = dedupe_list(
             list(performance.get("primary_usage") or [])
@@ -208,7 +228,7 @@ class RequirementOrchestrator:
         )
         component_weights = dict(performance.get("reference_component_weights") or {})
         capabilities = list(performance.get("capabilities") or [])
-        selection_context = self.build_selection_context(performance, appearance, price, other)
+        selection_context = self.build_selection_context(performance, appearance, price, other, user_text=user_text)
 
         if not any([scenario_tags, component_weights, capabilities, selection_context.protected_components, selection_context.cost_cut_components]):
             return {}

@@ -20,9 +20,9 @@ def dedupe_list(items: list[Any]) -> list[Any]:
 
 
 class SelectionContext(BaseModel):
-    must_satisfy: list[str] = Field(default_factory=list)
-    prefer_satisfy: list[str] = Field(default_factory=list)
-    avoid: list[str] = Field(default_factory=list)
+    must_satisfy: list[Any] = Field(default_factory=list)
+    prefer_satisfy: list[Any] = Field(default_factory=list)
+    avoid: list[Any] = Field(default_factory=list)
     protected_components: list[str] = Field(default_factory=list)
     cost_cut_components: list[str] = Field(default_factory=list)
     budget_context: dict[str, Any] = Field(default_factory=dict)

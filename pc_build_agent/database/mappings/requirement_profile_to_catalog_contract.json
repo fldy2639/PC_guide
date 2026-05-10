@@ -6,8 +6,19 @@
   "principles": [
     "第一层只产出 RequirementProfile，不查询 hardware_catalog。",
     "PartsSelectionAgent 以 RequirementProfile 与 hardware_catalog 为数据源；映射文件说明字段与路径约定。",
-    "profile 中不出现具体 SKU；SKU 仅存在于 hardware_catalog/data/*.json 的 items[]。"
+    "profile 中不出现具体 SKU；SKU 仅存在于 hardware_catalog/data/*.json 的 items[]。",
+    "selection_context.must_satisfy 进入 PartsSelectionAgent 前必须只包含可执行结构化约束。",
+    "语义标签必须先通过 selection_constraint_mapping.json 编译，不能作为硬过滤字符串直接进入第二层。",
+    "预算、策略、提示类信号不得作为单品硬过滤条件；由 budget_context、compatibility_checks、cross_module_signals 或最终校验处理。",
+    "cross_module_signals 不直接过滤商品；只有被 selection_constraint_mapping.json 映射为结构化约束后才影响选择。"
   ],
+  "selection_constraint_mapping": "pc_build_agent/database/mappings/selection_constraint_mapping.json",
+  "selection_context_contract": {
+    "must_satisfy": "Only executable constraint objects are allowed after compilation. Unknown hard semantic tags are moved out of hard filtering.",
+    "prefer_satisfy": "May contain executable preference constraint objects and non-blocking semantic preference tags.",
+    "avoid": "Executable avoid objects are preferred; textual avoid tags are non-blocking scoring hints unless explicitly mapped.",
+    "cross_module_signals": "Carried for explanation and debugging. Signals must be mapped by selection_constraint_mapping.json before they become executable constraints."
+  },
   "data_files_by_category": {
     "CPU": "data/cpu.json",
     "GPU": "data/gpu.json",

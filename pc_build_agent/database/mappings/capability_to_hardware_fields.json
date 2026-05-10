@@ -1,5 +1,46 @@
 {
   "version": "v1",
   "description": "抽象能力/策略轴与 hardware_catalog 字段的对照。选件层据此从 RequirementProfile 推导应读取的 catalog 字段；第一层实现不应直接读取 hardware_catalog。",
-  "mappings": []
+  "mappings": [
+    {
+      "capability": "cpu_compute",
+      "components": ["cpu"],
+      "fields": ["cpu_single_core_score", "cpu_multi_core_score", "cores", "threads", "tdp_w", "socket"]
+    },
+    {
+      "capability": "graphics_performance",
+      "components": ["gpu"],
+      "fields": ["gpu_performance_score", "gaming_score", "ai_score", "vram_gb", "tbp_w", "recommended_psu_w", "gpu_length_mm"]
+    },
+    {
+      "capability": "memory_capacity_and_platform",
+      "components": ["ram", "motherboard"],
+      "fields": ["capacity_gb", "speed_mhz", "module_count", "memory_type", "ram_slots"]
+    },
+    {
+      "capability": "storage_capacity_and_speed",
+      "components": ["ssd"],
+      "fields": ["capacity_gb", "ssd_performance_score", "endurance_score"]
+    },
+    {
+      "capability": "platform_compatibility",
+      "components": ["cpu", "motherboard", "ram"],
+      "fields": ["socket", "memory_type", "form_factor", "m2_slots", "front_usb_c_header", "wifi_builtin"]
+    },
+    {
+      "capability": "power_and_upgrade_headroom",
+      "components": ["psu", "gpu", "cpu"],
+      "fields": ["wattage_w", "efficiency_rating", "form_factor", "recommended_psu_w", "tbp_w", "tdp_w"]
+    },
+    {
+      "capability": "cooling_and_noise",
+      "components": ["cooling", "cpu", "case"],
+      "fields": ["supported_sockets", "cooling_capacity_w", "radiator_size_mm", "cooler_height_mm", "noise_score", "tdp_w", "max_cpu_cooler_height_mm"]
+    },
+    {
+      "capability": "case_fit_and_appearance",
+      "components": ["case", "motherboard", "gpu", "cooling", "psu"],
+      "fields": ["supported_motherboard_form_factors", "max_gpu_length_mm", "max_cpu_cooler_height_mm", "psu_form_factor_supported", "case_size_class", "case_style", "color", "front_type_c"]
+    }
+  ]
 }

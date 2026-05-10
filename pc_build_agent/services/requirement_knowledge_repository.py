@@ -29,10 +29,12 @@ class RequirementKnowledgeRepository:
         self,
         stable_root: str | Path | None = None,
         legacy_root: str | Path | None = None,
+        mappings_root: str | Path | None = None,
     ) -> None:
         root = Path(__file__).resolve().parents[1]
         self.stable_root = Path(stable_root or root / "database" / "requirement_knowledge" / "v1")
         self.legacy_root = Path(legacy_root or root / "rules")
+        self.mappings_root = Path(mappings_root or root / "database" / "mappings")
 
     def get_rules(self, domain: str) -> Any:
         source = self.get_source(domain)
@@ -92,6 +94,11 @@ class RequirementKnowledgeRepository:
         if not isinstance(rules, list):
             return []
         return rules
+
+    def get_selection_constraint_mapping(self) -> dict[str, Any]:
+        path = self.mappings_root / "selection_constraint_mapping.json"
+        data = self._safe_load_json(path)
+        return data if isinstance(data, dict) else {}
 
     @staticmethod
     def _safe_load_json(path: Path) -> Any:

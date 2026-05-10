@@ -1,0 +1,153 @@
+{
+  "version": "v1",
+  "description": "RequirementProfile selection_context semantic tags are compiled into executable catalog constraints before parts selection.",
+  "explicit_requirement_fields": [
+    {"requirement": "显卡型号/阵营/显存；NVIDIA/英伟达/N卡 必须映射为英伟达显卡，而不是 Intel Arc", "component": "gpu", "fields": ["name", "model", "brand", "vram_gb"]},
+    {"requirement": "CPU 厂商/系列/核心数/核显", "component": "cpu", "fields": ["brand", "name", "model", "cores", "has_integrated_graphics", "socket"]},
+    {"requirement": "内存容量/类型", "component": "ram", "fields": ["capacity_gb", "memory_type"]},
+    {"requirement": "内存类型对应主板平台", "component": "motherboard", "fields": ["memory_type"]},
+    {"requirement": "SSD 容量", "component": "ssd", "fields": ["capacity_gb"]},
+    {"requirement": "主板 WiFi/socket/板型", "component": "motherboard", "fields": ["wifi_builtin", "socket", "form_factor"]},
+    {"requirement": "机箱颜色/样式/大小/显卡限长", "component": "case", "fields": ["color", "case_style", "case_size_class", "max_gpu_length_mm"]},
+    {"requirement": "电源功率/认证", "component": "psu", "fields": ["wattage_w", "efficiency_rating"]},
+    {"requirement": "散热类型/冷排尺寸", "component": "cooling", "fields": ["cooling_type", "radiator_size_mm"]}
+  ],
+  "rules": {
+    "wifi_required": {
+      "source_buckets": ["must_satisfy", "cross_module_signals.selection_signals"],
+      "target_bucket": "must_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "motherboard", "field": "wifi_builtin", "operator": "==", "value": true}
+      ]
+    },
+    "storage_capacity_2tb_or_more": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "must_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "ssd", "field": "capacity_gb", "operator": ">=", "value": 2000}
+      ]
+    },
+    "psu_upgrade_headroom": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "must_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "psu", "field": "wattage_w", "operator": ">=", "value": 750}
+      ]
+    },
+    "gpu_clearance_headroom": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "must_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "max_gpu_length_mm", "operator": ">=", "value": 340}
+      ]
+    },
+    "future_gpu_upgrade_space_required": {
+      "source_buckets": ["cross_module_signals.selection_signals"],
+      "target_bucket": "must_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "psu", "field": "wattage_w", "operator": ">=", "value": 750},
+        {"component": "case", "field": "max_gpu_length_mm", "operator": ">=", "value": 340}
+      ]
+    },
+    "case_size:compact_m_atx": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "case_size_class", "operator": "contains_any", "value": ["micro", "m-atx", "小型", "迷你", "itx"]}
+      ]
+    },
+    "case_size:itx_compact": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "case_size_class", "operator": "contains_any", "value": ["itx", "sff", "迷你", "小型"]}
+      ]
+    },
+    "case_size:large_atx": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "supported_motherboard_form_factors", "operator": "contains_any", "value": ["ATX", "E-ATX"]}
+      ]
+    },
+    "front_type_c_required": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "front_type_c", "operator": "==", "value": true},
+        {"component": "motherboard", "field": "front_usb_c_header", "operator": "==", "value": true}
+      ]
+    },
+    "non_white_case_only_strategy": {
+      "source_buckets": ["avoid"],
+      "target_bucket": "avoid",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "color", "operator": "not_contains", "value": "白"}
+      ]
+    },
+    "low_wattage_psu": {
+      "source_buckets": ["avoid"],
+      "target_bucket": "avoid",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "psu", "field": "wattage_w", "operator": "<", "value": 650}
+      ]
+    },
+    "very_small_case_without_gpu_clearance": {
+      "source_buckets": ["avoid"],
+      "target_bucket": "avoid",
+      "action": "replace_with_constraints",
+      "constraints": [
+        {"component": "case", "field": "max_gpu_length_mm", "operator": "<", "value": 330}
+      ]
+    },
+    "budget_upper_limit": {
+      "source_buckets": ["must_satisfy"],
+      "action": "drop",
+      "reason": "Budget upper limit is enforced by budget_context and final validation, not by single-product filtering."
+    },
+    "new_parts_only": {
+      "source_buckets": ["must_satisfy"],
+      "action": "drop",
+      "reason": "The current catalog contains new retail products only; keep this as policy context instead of product filtering."
+    },
+    "no_rgb_policy": {
+      "source_buckets": ["must_satisfy"],
+      "action": "drop",
+      "reason": "No-RGB policy is expressed by avoid constraints and preference scoring."
+    },
+    "bluetooth_required": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "move_tag"
+    },
+    "multi_display_output_required": {
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "move_tag"
+    }
+  },
+  "prefix_rules": [
+    {
+      "prefix": "case_size:",
+      "source_buckets": ["must_satisfy"],
+      "target_bucket": "prefer_satisfy",
+      "action": "move_tag"
+    }
+  ],
+  "unknown_policy": {
+    "must_satisfy": "move_to_prefer_satisfy",
+    "prefer_satisfy": "keep",
+    "avoid": "keep"
+  }
+}
