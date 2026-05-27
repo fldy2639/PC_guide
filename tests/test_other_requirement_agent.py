@@ -140,6 +140,18 @@ def test_owned_monitor_and_keyboard_mouse():
     assert other["purchase_scope"]["include_peripherals"] is False
 
 
+def test_flexible_other_phrasing_without_exact_rule_keywords():
+    agent = make_agent()
+    result = agent.analyze("屏幕自己有，不买显示器；主机就行；无线网络必须稳定；只要全新别有拆机件")
+    other = result["other"]
+
+    assert other["owned_parts"]["has_monitor"] is True
+    assert other["purchase_scope"]["only_host"] is True
+    assert other["purchase_scope"]["include_monitor"] is False
+    assert other["connectivity"]["need_wifi"] is True
+    assert other["purchase_risk"]["accept_used_parts"] is False
+
+
 class FakeLlm:
     def chat_json(self, messages, step):  # noqa: ANN001
         return {

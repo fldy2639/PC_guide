@@ -51,6 +51,10 @@ def _parts_snapshot(parts: dict[str, ProductRecord]) -> dict[str, Any]:
 def _required_psu_watts(gpu: ProductRecord, power_rules: list[dict[str, Any]]) -> tuple[int, int]:
     if is_integrated_gpu_placeholder(gpu):
         return 300, 400
+    gpu_rec = (gpu.specs or {}).get("recommended_psu_w")
+    if isinstance(gpu_rec, (int, float)):
+        rec = int(gpu_rec)
+        return rec, rec
     name = gpu.name
     best_min = 450
     best_rec = 550
@@ -96,6 +100,24 @@ def _spec_list(value: Any) -> list[str]:
         text = value.replace("，", "/").replace(",", "/").replace("|", "/")
         return [part.strip().upper() for part in text.split("/") if part.strip()]
     return []
+
+
+def _normalize_form_factor(value: Any) -> str:
+    text = str(value or "").upper().strip()
+    text = text.strip("'\"[](){} ")
+    text = text.replace("_", " ").replace("-", " ")
+    compact = re.sub(r"\s+", "", text)
+    if compact in {"MICROATX", "MATX"}:
+        return "M-ATX"
+    if compact in {"MINIITX", "ITX"}:
+        return "MINI-ITX"
+    if compact in {"EATX", "EXTENDEDATX"}:
+        return "E-ATX"
+    if compact == "SFXL":
+        return "SFX-L"
+    if compact in {"ATX", "SFX"}:
+        return compact
+    return compact
 
 
 def _spec_socket_ok(cpu: ProductRecord, mb: ProductRecord) -> bool | None:
@@ -184,8 +206,9 @@ def _spec_mb_case_ok(mb: ProductRecord, case: ProductRecord) -> tuple[bool, str 
     form_factor = (mb.specs or {}).get("form_factor")
     supported = _spec_list((case.specs or {}).get("supported_motherboard_form_factors"))
     if form_factor and supported:
-        form = str(form_factor).upper()
-        ok = form in supported
+        form = _normalize_form_factor(form_factor)
+        supported_normalized = {_normalize_form_factor(item) for item in supported}
+        ok = form in supported_normalized
         return ok, None if ok else "主板板型与机箱支持范围不匹配"
     return None
 
@@ -194,8 +217,9 @@ def _spec_psu_case_ok(psu: ProductRecord, case: ProductRecord) -> tuple[bool, st
     form_factor = (psu.specs or {}).get("form_factor")
     supported = _spec_list((case.specs or {}).get("psu_form_factor_supported"))
     if form_factor and supported:
-        form = str(form_factor).upper()
-        ok = form in supported
+        form = _normalize_form_factor(form_factor)
+        supported_normalized = {_normalize_form_factor(item) for item in supported}
+        ok = form in supported_normalized
         return ok, None if ok else "电源尺寸与机箱支持范围不匹配"
     return None
 
@@ -297,6 +321,27 @@ def _total_price(parts: dict[str, ProductRecord]) -> float:
     return float(sum(p.price for p in parts.values()))
 
 
+def _psu_watts(psu: ProductRecord) -> int | None:
+    wattage = (psu.specs or {}).get("wattage_w")
+    if isinstance(wattage, (int, float)):
+        return int(wattage)
+    return extract_psu_watts(psu.name)
+
+
+def _motherboard_memory_type(mb: ProductRecord) -> str | None:
+    memory_type = (mb.specs or {}).get("memory_type")
+    if memory_type:
+        return str(memory_type).upper()
+    return motherboard_ddr(mb.name)
+
+
+def _ram_memory_type(ram: ProductRecord) -> str | None:
+    memory_type = (ram.specs or {}).get("memory_type")
+    if memory_type:
+        return str(memory_type).upper()
+    return memory_ddr(ram.name)
+
+
 def _sku_index(lst: list[ProductRecord], sku_id: str) -> int:
     for i, p in enumerate(lst):
         if p.sku_id == sku_id:
@@ -384,7 +429,7 @@ def _first_compatible_build(
 def _pick_cheapest_psu_meeting(psus: list[ProductRecord], min_w: int) -> ProductRecord | None:
     candidates = []
     for p in psus:
-        w = extract_psu_watts(p.name)
+        w = _psu_watts(p)
         if w is None:
             continue
         if w >= min_w:
@@ -396,7 +441,7 @@ def _pick_cheapest_psu_meeting(psus: list[ProductRecord], min_w: int) -> Product
 
 
 def _pick_cheapest_ram_ddr(rams: list[ProductRecord], ddr: str) -> ProductRecord | None:
-    ok = [p for p in rams if memory_ddr(p.name) == ddr]
+    ok = [p for p in rams if _ram_memory_type(p) == ddr]
     if not ok:
         return None
     ok.sort(key=lambda p: p.price)
@@ -413,14 +458,121 @@ def _pick_cheapest_mb_for_cpu(mbs: list[ProductRecord], cpu_name: str, rules: di
 def _pick_cheapest_mb_for_cpu_part(mbs: list[ProductRecord], cpu: ProductRecord, rules: dict[str, Any]) -> ProductRecord | None:
     cpu_socket = (cpu.specs or {}).get("socket")
     if cpu_socket:
+        structured = [p for p in mbs if (p.specs or {}).get("socket")]
         compatible = [
-            p for p in mbs
+            p for p in structured
             if (p.specs or {}).get("socket") and str((p.specs or {}).get("socket")).upper() == str(cpu_socket).upper()
         ]
         if compatible:
             compatible.sort(key=lambda p: p.price)
             return compatible[0]
+        unstructured = [p for p in mbs if not (p.specs or {}).get("socket")]
+        compatible_by_rule = [p for p in unstructured if _cpu_mb_ok(cpu.name, p.name, rules.get("cpu_motherboard_rules") or [])]
+        if compatible_by_rule:
+            compatible_by_rule.sort(key=lambda p: p.price)
+            return compatible_by_rule[0]
+        if structured:
+            return None
     return _pick_cheapest_mb_for_cpu(mbs, cpu.name, rules)
+
+
+def _pick_cpu_for_motherboard(cpus: list[ProductRecord], mb: ProductRecord, rules: dict[str, Any]) -> ProductRecord | None:
+    mb_socket = (mb.specs or {}).get("socket")
+    if mb_socket:
+        compatible = [
+            p for p in cpus
+            if (p.specs or {}).get("socket") and str((p.specs or {}).get("socket")).upper() == str(mb_socket).upper()
+        ]
+        if compatible:
+            return compatible[0]
+        return None
+
+    compatible_by_rule = [p for p in cpus if _cpu_mb_ok(p.name, mb.name, rules.get("cpu_motherboard_rules") or [])]
+    return compatible_by_rule[0] if compatible_by_rule else None
+
+
+def _is_risky_value_alternative_part(part: ProductRecord) -> bool:
+    text = " ".join([part.name, " ".join(part.tags or [])]).lower()
+    return any(token in text for token in ["二手", "拆机", "矿卡", "工包"])
+
+
+def _build_value_alternative_suggestions(
+    parts: dict[str, ProductRecord],
+    sorted_by_category: dict[str, list[ProductRecord]],
+    locked_cat: set[str],
+    rules: dict[str, Any],
+) -> list[str]:
+    current_total = _total_price(parts)
+    if current_total <= 0:
+        return []
+
+    target_total = current_total * 0.8
+    downgrade_pairs = [
+        ("显卡", "处理器"),
+        ("显卡", "硬盘"),
+        ("显卡", "内存"),
+        ("处理器", "硬盘"),
+    ]
+    best_key: tuple[float, float, str, str] | None = None
+    best_pick: tuple[str, str, ProductRecord, ProductRecord] | None = None
+
+    for left, right in downgrade_pairs:
+        if left in locked_cat or right in locked_cat:
+            continue
+        left_current = parts.get(left)
+        right_current = parts.get(right)
+        if left_current is None or right_current is None:
+            continue
+        left_candidates = [
+            item
+            for item in sorted_by_category.get(left, [])[:18]
+            if (
+                item.sku_id != left_current.sku_id
+                and float(item.price) < float(left_current.price)
+                and not _is_risky_value_alternative_part(item)
+            )
+        ]
+        right_candidates = [
+            item
+            for item in sorted_by_category.get(right, [])[:18]
+            if (
+                item.sku_id != right_current.sku_id
+                and float(item.price) < float(right_current.price)
+                and not _is_risky_value_alternative_part(item)
+            )
+        ]
+        for left_pick in left_candidates:
+            for right_pick in right_candidates:
+                trial = dict(parts)
+                trial[left] = left_pick
+                trial[right] = right_pick
+                blocking, _ = diagnose(trial, rules)
+                if blocking:
+                    continue
+                trial_total = _total_price(trial)
+                if trial_total >= current_total * 0.92:
+                    continue
+                score = abs(trial_total - target_total)
+                candidate_key = (score, -trial_total, left, right)
+                if best_key is None or candidate_key < best_key:
+                    best_key = candidate_key
+                    best_pick = (left, right, left_pick, right_pick)
+
+    if best_pick is None:
+        return []
+
+    left, right, left_pick, right_pick = best_pick
+    alternative = dict(parts)
+    alternative[left] = left_pick
+    alternative[right] = right_pick
+    alternative_total = _total_price(alternative)
+    return [
+        (
+            "性价比备选："
+            f"将{left}换成「{left_pick.name}」，{right}换成「{right_pick.name}」，"
+            f"预计总价约 ¥{alternative_total:.0f}，约为主方案的 {alternative_total / current_total:.0%}。"
+        )
+    ]
 
 
 def validate_and_select(
@@ -454,12 +606,92 @@ def validate_and_select(
             if category in sorted_by_category:
                 idx[category] = _sku_index(sorted_by_category[category], part.sku_id)
 
+    def upgrade_underused_budget(max_budget: float, target_floor: float) -> None:
+        upgrade_order = ["显卡", "处理器", "硬盘", "内存", "散热", "主板", "机箱", "风扇", "显示器"]
+
+        for upgrade_iteration in range(1, 60):
+            current_parts = parts_now()
+            current_total = _total_price(current_parts)
+            if current_total >= target_floor:
+                return
+
+            best_upgrade: dict[str, Any] | None = None
+            for category in upgrade_order:
+                if category in locked_cat or category not in idx:
+                    continue
+                current_part = current_parts.get(category)
+                if current_part is None:
+                    continue
+                for candidate in sorted_by_category.get(category, [])[:24]:
+                    if candidate.sku_id == current_part.sku_id or float(candidate.price) <= float(current_part.price):
+                        continue
+
+                    before_idx = dict(idx)
+                    idx[category] = _sku_index(sorted_by_category[category], candidate.sku_id)
+                    trial_parts = parts_now()
+                    blocking, _ = diagnose(trial_parts, rules)
+
+                    psu_pick = None
+                    if blocking and any("电源额定功率" in item for item in blocking):
+                        gpu = trial_parts.get("显卡")
+                        if gpu and "电源" in sorted_by_category and "电源" not in locked_cat:
+                            min_w, _ = _required_psu_watts(gpu, rules.get("power_rules") or [])
+                            psu_pick = _pick_cheapest_psu_meeting(sorted_by_category["电源"], min_w)
+                            if psu_pick is not None:
+                                idx["电源"] = _sku_index(sorted_by_category["电源"], psu_pick.sku_id)
+                                trial_parts = parts_now()
+                                blocking, _ = diagnose(trial_parts, rules)
+
+                    trial_total = _total_price(trial_parts)
+                    trial_idx = dict(idx)
+                    idx.clear()
+                    idx.update(before_idx)
+
+                    if blocking or trial_total <= current_total or trial_total > max_budget:
+                        continue
+
+                    priority = upgrade_order.index(category)
+                    rank = (priority, -trial_total)
+                    if best_upgrade is None or rank < best_upgrade["rank"]:
+                        best_upgrade = {
+                            "rank": rank,
+                            "category": category,
+                            "before": current_part,
+                            "after": candidate,
+                            "psu_after": psu_pick,
+                            "total_before": current_total,
+                            "total_after": trial_total,
+                            "idx": trial_idx,
+                        }
+
+            if best_upgrade is None:
+                return
+
+            idx.clear()
+            idx.update(best_upgrade["idx"])
+            validation_debug["budget_steps"].append(
+                {
+                    "iteration": upgrade_iteration,
+                    "action": "upgrade_underused_budget",
+                    "total_before": best_upgrade["total_before"],
+                    "total_after": best_upgrade["total_after"],
+                    "budget_max": max_budget,
+                    "target_floor": target_floor,
+                    "category": best_upgrade["category"],
+                    "before": _part_snapshot(best_upgrade["before"]),
+                    "after": _part_snapshot(best_upgrade["after"]),
+                    "psu_after": _part_snapshot(best_upgrade["psu_after"]),
+                }
+            )
+
     # --- 兼容性修复（带索引推进）---
     iteration = 0
+    seen_compatibility_states: set[tuple[tuple[str, str], ...]] = set()
     for _ in range(600):
         iteration += 1
         parts = parts_now()
         blocking, warns = diagnose(parts, rules)
+        state = tuple(sorted((category, part.sku_id) for category, part in parts.items()))
         if not validation_debug["initial_parts"]:
             validation_debug["initial_parts"] = _parts_snapshot(parts)
         validation_debug["diagnose_steps"].append(
@@ -472,12 +704,30 @@ def validate_and_select(
         )
         if not blocking:
             break
+        if state in seen_compatibility_states:
+            compatible_parts = _first_compatible_build(sorted_by_category, rules, limit=12)
+            if compatible_parts:
+                apply_parts(compatible_parts)
+                parts = parts_now()
+                blocking, warns = diagnose(parts, rules)
+                validation_debug["fix_steps"].append(
+                    {
+                        "iteration": iteration,
+                        "issue": "repeated_compatibility_state",
+                        "action": "replace build with compatible candidate combination",
+                        "after": _parts_snapshot(parts),
+                    }
+                )
+                if not blocking:
+                    break
+            break
+        seen_compatibility_states.add(state)
 
         progressed = False
 
         if any("内存类型" in b for b in blocking):
             mb = parts["主板"]
-            ddr = motherboard_ddr(mb.name)
+            ddr = _motherboard_memory_type(mb)
             ram_list = sorted_by_category["内存"]
             if ddr:
                 pick = _pick_cheapest_ram_ddr(ram_list, ddr)
@@ -497,9 +747,9 @@ def validate_and_select(
             if not progressed:
                 mb_list = sorted_by_category["主板"]
                 ram = parts["内存"]
-                rd = memory_ddr(ram.name)
+                rd = _ram_memory_type(ram)
                 if rd:
-                    cand_mbs = [p for p in mb_list if motherboard_ddr(p.name) == rd]
+                    cand_mbs = [p for p in mb_list if _motherboard_memory_type(p) == rd]
                     if cand_mbs:
                         cand_mbs.sort(key=lambda p: p.price)
                         pick_mb = cand_mbs[0]
@@ -532,6 +782,24 @@ def validate_and_select(
                             "action": "replace motherboard",
                             "before": _part_snapshot(before_part),
                             "after": _part_snapshot(pick_mb),
+                        }
+                    )
+                    progressed = next_idx != before_idx
+            if not progressed and "处理器" not in locked_cat:
+                cpu_list = sorted_by_category["处理器"]
+                pick_cpu = _pick_cpu_for_motherboard(cpu_list, parts["主板"], rules)
+                if pick_cpu:
+                    before_part = parts.get("处理器")
+                    before_idx = idx["处理器"]
+                    next_idx = _sku_index(cpu_list, pick_cpu.sku_id)
+                    idx["处理器"] = next_idx
+                    validation_debug["fix_steps"].append(
+                        {
+                            "iteration": iteration,
+                            "issue": next((item for item in blocking if "CPU 与主板" in item or "平台" in item), blocking[0]),
+                            "action": "replace cpu",
+                            "before": _part_snapshot(before_part),
+                            "after": _part_snapshot(pick_cpu),
                         }
                     )
                     progressed = next_idx != before_idx
@@ -686,7 +954,7 @@ def validate_and_select(
                 psu = trial.get("电源")
                 if gpu and psu:
                     min_w, _ = _required_psu_watts(gpu, rules.get("power_rules") or [])
-                    got = extract_psu_watts(psu.name)
+                    got = _psu_watts(psu)
                     if got is not None and got < min_w:
                         psu_list = sorted_by_category["电源"]
                         pick_psu = _pick_cheapest_psu_meeting(psu_list, min_w)
@@ -704,11 +972,16 @@ def validate_and_select(
                             continue
 
                 after_parts = parts_now()
+                after_total = _total_price(after_parts)
+                if after_total >= before_total:
+                    idx[cat] = before_cat
+                    idx["电源"] = psu_before
+                    continue
                 validation_debug["budget_steps"].append(
                     {
                         "iteration": budget_iteration,
                         "total_before": before_total,
-                        "total_after": _total_price(after_parts),
+                        "total_after": after_total,
                         "budget_max": budget_max,
                         "category": cat,
                         "before": _part_snapshot(before_part),
@@ -758,7 +1031,7 @@ def validate_and_select(
                 psu = trial.get("电源")
                 if gpu and psu:
                     min_w, _ = _required_psu_watts(gpu, rules.get("power_rules") or [])
-                    got = extract_psu_watts(psu.name)
+                    got = _psu_watts(psu)
                     if got is not None and got < min_w:
                         psu_list = sorted_by_category["电源"]
                         pick_psu = _pick_cheapest_psu_meeting(psu_list, min_w)
@@ -776,11 +1049,16 @@ def validate_and_select(
                             continue
 
                 after_parts = parts_now()
+                after_total = _total_price(after_parts)
+                if after_total >= before_total:
+                    idx[cat] = before_cat
+                    idx["电源"] = psu_before
+                    continue
                 validation_debug["budget_steps"].append(
                     {
                         "iteration": strict_budget_iteration,
                         "total_before": before_total,
-                        "total_after": _total_price(after_parts),
+                        "total_after": after_total,
                         "budget_max": budget_max,
                         "category": cat,
                         "before": _part_snapshot(before_part),
@@ -809,6 +1087,34 @@ def validate_and_select(
                     "after": _parts_snapshot(parts),
                 }
             )
+
+    if blocking_final:
+        total = _total_price(parts)
+        validation_debug["final_parts"] = _parts_snapshot(parts)
+        validation_debug["final_issues"] = list(blocking_final)
+        validation_debug["final_status"] = "failed_with_alternative"
+        return ValidationOutcome(
+            status="failed_with_alternative",
+            final_build=[],
+            total_price=total,
+            budget_check={"status": "unknown"},
+            compatibility_check={"status": "fail", "warnings": blocking_final},
+            risk_check={"status": "fail", "warnings": warns},
+            unmet_constraints=["compatibility"],
+            alternative_suggestions=[
+                "当前组合在预算/兼容性约束下难以闭环，请放宽指定机型或调整平台搭配。",
+            ],
+            debug=validation_debug,
+        )
+
+    if budget_max is not None:
+        mx = float(budget_max)
+        upgrade_floor = mx * 0.90
+        if _total_price(parts) < upgrade_floor:
+            upgrade_underused_budget(mx, upgrade_floor)
+            parts = parts_now()
+            blocking_final, warns = diagnose(parts, rules)
+
     total = _total_price(parts)
     validation_debug["final_parts"] = _parts_snapshot(parts)
     validation_debug["final_issues"] = list(blocking_final)
@@ -824,7 +1130,7 @@ def validate_and_select(
             risk_check={"status": "fail", "warnings": warns},
             unmet_constraints=["compatibility"],
             alternative_suggestions=[
-                "当前组合在预算/兼容性约束下难以闭环，请放宽指定机型或调整平台搭配。",
+                "预算利用率升级后出现兼容性问题，请放宽指定机型或调整平台搭配。",
             ],
             debug=validation_debug,
         )
@@ -868,6 +1174,9 @@ def validate_and_select(
     if need_confirm:
         status = "need_user_confirmation"
     validation_debug["final_status"] = status
+    alternative_suggestions = []
+    if status == "success" and budget_max is not None and total >= float(budget_max) * 0.85:
+        alternative_suggestions = _build_value_alternative_suggestions(parts, sorted_by_category, locked_cat, rules)
 
     return ValidationOutcome(
         status=status,
@@ -880,6 +1189,6 @@ def validate_and_select(
         compatibility_check={"status": "pass", "warnings": []},
         risk_check={"status": "pass_with_notes" if warns else "pass", "warnings": warns},
         unmet_constraints=[],
-        alternative_suggestions=[],
+        alternative_suggestions=alternative_suggestions,
         debug=validation_debug,
     )

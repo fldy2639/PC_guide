@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
+from pc_build_agent.prompts.appearance_prompts import APPEARANCE_EXTRACTION_PROMPT
 from pc_build_agent.schemas.appearance_schema import AppearanceAgentOutput, AppearanceOutput
 from pc_build_agent.services.requirement_knowledge_repository import RequirementKnowledgeRepository
 
@@ -132,6 +134,7 @@ class AppearanceRequirementAgent:
     def match_rules(self, normalized_text: str) -> list[dict]:
         matched_rules = []
         matched_rules.extend(self._match_negative_overrides(normalized_text))
+        matched_rules.extend(self._infer_flexible_appearance_rules(normalized_text))
 
         for rule in self.rules:
             hit_keywords = []
@@ -191,9 +194,68 @@ class AppearanceRequirementAgent:
         return False
 
     def extract_with_llm(self, user_text: str) -> dict | None:
-        # 如果项目中已有 LLM 调用封装，请接入已有封装。
-        # 如果没有，先保留接口，不要强制实现外部 API。
+        if not self.llm:
+            return None
+        if hasattr(self.llm, "api_key") and not getattr(self.llm, "api_key"):
+            return None
+        if hasattr(self.llm, "chat_json"):
+            prompt = APPEARANCE_EXTRACTION_PROMPT.replace("{user_text}", user_text)
+            messages = [
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": user_text},
+            ]
+            try:
+                return self.llm.chat_json(messages, step="appearance_extraction")
+            except Exception:
+                return None
         return None
+
+    def _infer_flexible_appearance_rules(self, normalized_text: str) -> list[dict[str, Any]]:
+        rules: list[dict[str, Any]] = []
+        for dimension, value, pattern in [
+            ("color", "white", r"(奶油白|珍珠白|象牙白|月光白|雪白|纯白|白色|白机箱|白主机)"),
+            ("color", "black", r"(曜石黑|黑武士|纯黑|黑色|黑机箱|黑主机)"),
+            ("color", "silver_or_gray", r"(银色|灰色|钛色|月岩灰|太空灰|金属灰)"),
+            ("color", "pink", r"(粉色|樱花粉|玫瑰粉)"),
+            ("color", "mixed", r"(撞色|双色|黑白配|黑白色)"),
+            ("case_style", "panoramic", r"(全景|鱼缸|展示仓|展示感|玻璃房)"),
+            ("case_style", "dual_chamber", r"(双仓|分仓|背插|走线整洁)"),
+            ("case_style", "minimalist", r"(简洁|简约|低调|素雅|商务|干净外观|不花)"),
+            ("case_style", "gaming", r"(电竞|机甲|战斗感|赛博|炫酷)"),
+            ("case_style", "airflow_mesh", r"(网孔|mesh|通风|风道|散热好)"),
+            ("case_style", "open_frame", r"(开放式|开放机架)"),
+            ("case_size", "itx_compact", r"(itx|mini[- ]?itx|sff|迷你|小主机|越小越好)"),
+            ("case_size", "compact_m_atx", r"(紧凑|不占地方|桌面空间|小一点|宿舍桌面)"),
+            ("case_size", "standard_atx", r"(普通大小|常规机箱|正常机箱)"),
+            ("case_size", "large_atx", r"(大机箱|全塔|扩展强|空间大)"),
+            ("material", "tempered_glass", r"(玻璃|侧透|全景)"),
+            ("material", "metal", r"(金属|钢板|硬朗)"),
+            ("material", "aluminum", r"(铝合金|铝制|铝壳)"),
+            ("material", "mesh", r"(网孔|mesh|透气)"),
+            ("material", "matte", r"(磨砂|哑光)"),
+            ("material", "avoid_plastic", r"(不要塑料感|别太塑料|廉价感)"),
+            ("rgb", "argb", r"(argb|神光同步|可调灯)"),
+            ("rgb", "rgb", r"(rgb|彩灯|灯效)"),
+            ("rgb", "low_rgb", r"(低调灯|一点灯|不要太亮)"),
+            ("rgb", "no_rgb", r"(无光|不要灯|不要rgb|不带灯|光污染)"),
+            ("noise", "silent", r"(越安静越好|不能吵|强静音|极静音)"),
+            ("noise", "low_noise", r"(安静|低噪|小声|别太吵|寝室夜里)"),
+            ("noise", "airflow_first", r"(散热优先|风量大|温度低|压得住)"),
+        ]:
+            match = re.search(pattern, normalized_text, flags=re.IGNORECASE)
+            if not match:
+                continue
+            rules.append(
+                {
+                    "rule_id": f"flexible_{dimension}_{value}",
+                    "dimension": dimension,
+                    "normalized_value": value,
+                    "hit_keywords": [match.group(1)],
+                    "effects": {dimension: value},
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        return rules
 
     def merge_rule_and_llm_results(
         self,

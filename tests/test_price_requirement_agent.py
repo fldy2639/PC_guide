@@ -35,6 +35,15 @@ def test_extract_budget_supports_hard_limit_and_unlimited_phrases():
     assert rich_budget["value_preference"] == "quality_first"
 
 
+def test_extract_budget_ignores_performance_numbers_without_budget_context():
+    budget = build_agent().extract_budget("主要玩3A，想上2K高画质")
+
+    assert budget["min_budget"] is None
+    assert budget["max_budget"] is None
+    assert budget["target_budget"] is None
+    assert budget["direct_price_phrases"] == []
+
+
 def test_office_low_budget():
     result = build_agent().analyze(
         "6000以内，办公学习，越便宜越好",

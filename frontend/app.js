@@ -144,10 +144,12 @@
 
   // 追问卡片当前选中项：键为卡片占位 id，值为 {value,label}
   var selections = {};
+  var clarificationDraftBase = "";
 
   // 新一轮追问前重置卡片选择状态
   function resetSelections() {
     selections = {}; // 丢弃旧引用
+    clarificationDraftBase = "";
   }
 
   // HTML 转义：防 XSS，所有用户/模型文本插入 innerHTML 前须经过此函数
@@ -157,6 +159,23 @@
       .replace(/</g, "&lt;") // 小于号
       .replace(/>/g, "&gt;") // 大于号
       .replace(/"/g, "&quot;"); // 双引号
+  }
+
+  function categoryCode(category) {
+    var map = {
+      处理器: "CPU",
+      显卡: "GPU",
+      主板: "MB",
+      内存: "RAM",
+      硬盘: "SSD",
+      机箱: "CASE",
+      散热: "COOL",
+      电源: "PSU",
+      风扇: "FAN",
+      显示器: "MON",
+    };
+    var value = String(category || "");
+    return map[value] || value.slice(0, 2).toUpperCase() || "PC";
   }
 
   // POST recommend：携带 user_query、session_id、debug_llm
@@ -187,6 +206,7 @@
   function renderClarification(data) {
     el.clarifyWrap.classList.remove("hidden"); // 显示追问容器
     el.resultWrap.classList.add("hidden"); // 隐藏右侧结果，避免同时抢占视觉焦点
+    clarificationDraftBase = el.query.value.trim();
 
     var q = data.clarification_question || "请补充以下信息："; // 后端生成或默认追问句
     var cards = data.clarification_cards || []; // 结构化卡片数组
@@ -219,6 +239,7 @@
       });
       html += "</div>"; // 关闭 card-grid
       html += '<p class="hint">点选选项后会记入下方输入框；也可直接修改文案再提交。</p>'; // 操作说明
+      html += '<div class="clarify-actions"><button type="button" class="btn btn-primary" id="btn-clarify-submit">确认并继续</button></div>';
     } else {
       html += '<p class="hint">请在左侧输入框补充预算、用途、是否要显示器等信息后再次提交。</p>'; // 无卡片时指引
     }
@@ -244,6 +265,23 @@
         applySelectionsToQuery(); // 同步到 textarea
       });
     });
+
+    var btnClarifySubmit = document.getElementById("btn-clarify-submit");
+    if (btnClarifySubmit) {
+      btnClarifySubmit.addEventListener("click", function () {
+        var hasSelection = Object.keys(selections).length > 0;
+        var hasManualEdit = el.query.value.trim() && el.query.value.trim() !== clarificationDraftBase;
+        if (!hasSelection && !hasManualEdit) {
+          alert("请先选择一个补充项，或直接在输入框里补充说明。");
+          return;
+        }
+        if (el.form.requestSubmit) {
+          el.form.requestSubmit();
+        } else {
+          el.form.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+      });
+    }
   }
 
   // 将已选卡片 label 合并写入用户输入框，减少用户手打
@@ -255,7 +293,7 @@
       })
       .filter(Boolean); // 去掉空
     if (parts.length) {
-      var prefix = el.query.value.trim() ? el.query.value.trim() + "\n" : ""; // 保留用户已输入内容
+      var prefix = clarificationDraftBase ? clarificationDraftBase + "\n" : ""; // 保留追问前用户已输入内容
       el.query.value = prefix + parts.join("；") + "。"; // 中文分号连接并以句号收尾
     }
   }
@@ -270,6 +308,20 @@
     } catch (_e) {
       return '<div class="md-body">' + escapeHtml(md) + "</div>"; // 解析异常兜底
     }
+  }
+
+  function renderBuildOverview(lines, total, sourceLabel, status) {
+    var count = (lines || []).length;
+    var html = '<div class="build-overview">';
+    html +=
+      '<div class="build-tower" aria-hidden="true"><span class="tower-light"></span><span class="tower-vent"></span><span class="tower-foot"></span></div>';
+    html += '<div class="build-metrics">';
+    html += '<div class="build-metric"><span>品类数</span><strong>' + count + "</strong></div>";
+    html += '<div class="build-metric"><span>参考总价</span><strong>¥' + Number(total || 0).toFixed(0) + "</strong></div>";
+    html += '<div class="build-metric"><span>方案来源</span><strong>' + escapeHtml(sourceLabel) + "</strong></div>";
+    html += '<div class="build-metric"><span>状态</span><strong>' + escapeHtml(status || "success") + "</strong></div>";
+    html += "</div></div>";
+    return html;
   }
 
   // 渲染成功/部分成功（含 failed_with_alternative）的右侧结果区
@@ -309,28 +361,38 @@
     html += "</div>"; // 关闭 summary-bar
 
     var status = d.status || payload.message || ""; // 业务状态或顶层 message
+    var source = d.recommendation_source || "local_catalog"; // 方案来源：本地商品库或外部搜索兜底
+    var sourceLabel = source === "external_search" ? "外部搜索兜底" : "本地库方案";
     var total = Number(d.total_price || 0); // 数值化总价，防字符串
     html += '<div class="price-banner">'; // 价格横幅
     html += '<span class="label">参考总价（含所选配件）</span>'; // 文案
     html += '<span class="amt">¥' + total.toFixed(0) + "</span>"; // 整数元展示
-    html += '<span class="status">' + escapeHtml(status) + "</span>"; // 状态原样展示
+    html += '<span class="status">' + escapeHtml(sourceLabel + " · " + status) + "</span>"; // 状态原样展示
     html += "</div>"; // 关闭 price-banner
 
     var lines = d.final_build || []; // 装机清单行数组
+    html += renderBuildOverview(lines, total, sourceLabel, status);
     if (lines.length) {
       html += '<div class="parts-table-wrap"><table class="parts-table"><thead><tr>'; // 表格外层
-      html += '<th>类别</th><th>配件</th><th class="col-price">参考价</th><th>数量</th><th>购买</th>'; // 表头
+      html += '<th>类别</th><th>配件</th><th class="col-price">参考价</th><th>来源</th><th>数量</th><th>购买</th>'; // 表头
       html += "</tr></thead><tbody>"; // 进入表体
       lines.forEach(function (row) {
         var url = row.jd_url || "#"; // 京东链接占位
+        var rowSource = row.source === "external_search" ? "搜索" : "本地";
         var link =
           url && url !== "#"
             ? '<a class="jd-link" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">京东示意</a>' // 新窗口打开
             : '<span class="text-muted">链接占位</span>'; // 无链接
         html += "<tr>"; // 新行
         html += "<td>" + escapeHtml(row.category) + "</td>"; // 品类列
-        html += "<td>" + escapeHtml(row.name) + "</td>"; // 名称列
+        html +=
+          '<td><div class="part-cell"><span class="part-thumb">' +
+          escapeHtml(categoryCode(row.category)) +
+          '</span><span class="part-name">' +
+          escapeHtml(row.name) +
+          "</span></div></td>"; // 名称列
         html += '<td class="col-price">¥' + Number(row.price).toFixed(0) + "</td>"; // 价格列
+        html += '<td><span class="source-tag ' + escapeHtml(row.source || "local_catalog") + '">' + escapeHtml(rowSource) + "</span></td>"; // 来源列
         html += "<td>" + (row.quantity ?? 1) + "</td>"; // 数量列，空则 1
         html += '<td class="col-actions">' + link + "</td>"; // 操作列
         html += "</tr>"; // 结束行
@@ -343,7 +405,12 @@
     var reasons = d.recommendation_reason || []; // 推荐理由列表
 
     if (reasons.length) {
-      html += '<div class="note-block info"><h4>推荐理由</h4><ul>'; // 信息样式块
+      var reasonTitle = reasons.some(function (r) {
+        return String(r).indexOf("可选优化信息：") === 0;
+      })
+        ? "推荐理由 / 可选优化项"
+        : "推荐理由";
+      html += '<div class="note-block info"><h4>' + reasonTitle + "</h4><ul>"; // 信息样式块
       reasons.forEach(function (r) {
         html += "<li>" + escapeHtml(r) + "</li>"; // 列表项
       });

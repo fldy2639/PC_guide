@@ -3,11 +3,24 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from pc_build_agent.agents.flexible_text_signals import extract_component_specs
 from pc_build_agent.schemas.requirement_profile_schema import SelectionContext, dedupe_list
 
 
 TARGET_BUCKETS = {"must_satisfy", "prefer_satisfy", "avoid"}
 REQUIRED_CONSTRAINT_KEYS = {"component", "field", "operator"}
+CATEGORY_TO_COMPONENT = {
+    "处理器": "cpu",
+    "显卡": "gpu",
+    "主板": "motherboard",
+    "内存": "memory",
+    "硬盘": "ssd",
+    "机箱": "case",
+    "散热": "cooling",
+    "电源": "psu",
+    "风扇": "fan",
+    "显示器": "monitor",
+}
 
 
 class SelectionConstraintTranslator:
@@ -83,6 +96,13 @@ class SelectionConstraintTranslator:
         self._extract_psu_constraints(text, lower, output)
         self._extract_cooling_constraints(text, compact, output)
         self._extract_risk_avoidance_constraints(compact, output)
+        self._extract_generic_component_specs(text, output)
+
+    def _extract_generic_component_specs(self, text: str, output: dict[str, list[Any]]) -> None:
+        for category, phrase in extract_component_specs(text).items():
+            component = CATEGORY_TO_COMPONENT.get(category)
+            if component and phrase:
+                output["must_satisfy"].append({"component": component, "keyword": phrase})
 
     def _extract_gpu_constraints(self, text: str, lower: str, compact: str, output: dict[str, list[Any]]) -> None:
         for match in re.finditer(r"\b(RTX|GTX)\s*([0-9]{3,4})(?:\s*(SUPER|TI))?\b", text, re.I):

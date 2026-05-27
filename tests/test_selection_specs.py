@@ -9,7 +9,9 @@ from pc_build_agent.agents.selection import (
     prefer_satisfy_bonus,
     score_product_from_profile,
 )
+from pc_build_agent.agents.selection_constraint_translator import SelectionConstraintTranslator
 from pc_build_agent.models.schemas import ParsedRequirements, ProductRecord, RequirementsModel
+from pc_build_agent.schemas.requirement_profile_schema import SelectionContext
 
 
 def _product(category: str, sku_id: str, name: str, price: float, specs: dict | None = None, tags: list[str] | None = None) -> ProductRecord:
@@ -186,6 +188,16 @@ def test_specified_parts_locks_gpu_candidates_to_rtx():
     result = PartsSelectionAgent().select({"requirement_profile": profile}, pool)
     assert result.sorted_by_category["显卡"]
     assert all("rtx" in item.name.lower() for item in result.sorted_by_category["显卡"])
+
+
+def test_constraint_translator_preserves_unknown_component_spec_phrases():
+    context = SelectionContext()
+    profile = {"original_user_text": "必须使用银河幻影 X99 处理器和星河极光 Z9 显卡"}
+
+    compiled = SelectionConstraintTranslator().compile_context(context, profile=profile)
+
+    assert {"component": "cpu", "keyword": "银河幻影 X99 处理器"} in compiled.must_satisfy
+    assert {"component": "gpu", "keyword": "星河极光 Z9 显卡"} in compiled.must_satisfy
 
 
 def test_intel_nvidia_constraints_filter_out_arc_gpu():

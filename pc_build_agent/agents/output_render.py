@@ -97,5 +97,5 @@ def render_final_markdown(parsed: ParsedRequirements, outcome: ValidationOutcome
 def build_jd_links(build: list[BuildLine]) -> list[dict]:
     out = []
     for x in build:
-        out.append({"category": x.category, "name": x.name, "price": x.price, "jd_url": x.jd_url})
+        out.append({"category": x.category, "name": x.name, "price": x.price, "jd_url": x.jd_url, "source": x.source})
     return out

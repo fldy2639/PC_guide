@@ -6,6 +6,8 @@ from dataclasses import asdict, is_dataclass
 from pathlib import Path
 from typing import Any
 
+from pc_build_agent.agents.dynamic_clarification import DynamicClarificationAgent
+from pc_build_agent.agents.external_search import ExternalSearchBuildAgent, should_use_external_search
 from pc_build_agent.agents.output_render import build_jd_links, render_final_markdown
 from pc_build_agent.agents.requirement_agent import safe_parse, summarize_requirements
 from pc_build_agent.agents.selection import retrieve_candidates
@@ -107,9 +109,54 @@ def _requirement_profile_payload(parsed: Any, transcript: str) -> dict[str, Any]
     }
 
 
+def _selection_debug_payload(selection_result: Any) -> dict[str, Any]:
+    debug = getattr(selection_result, "debug", None)
+    if debug is None and hasattr(selection_result, "__dict__"):
+        debug = selection_result.__dict__.get("debug")
+    return debug or {}
+
+
+def _validation_debug_payload(outcome: Any) -> dict[str, Any]:
+    debug = getattr(outcome, "debug", None)
+    if debug is None and hasattr(outcome, "__dict__"):
+        debug = outcome.__dict__.get("debug")
+    return debug or {}
+
+
+def _compact_missing_fields(fields: list[str], limit: int = 6) -> list[str]:
+    compacted = [str(item).strip() for item in dict.fromkeys(fields) if str(item).strip()]
+    if len(compacted) <= limit:
+        return compacted
+    return compacted[:limit] + [f"等 {len(compacted) - limit} 项"]
+
+
+def _recommendation_reason_lines(parsed: Any, *, missing_label: str = "可选优化信息") -> list[str]:
+    reason_lines: list[str] = []
+    if getattr(parsed, "explanation", ""):
+        reason_lines.append(parsed.explanation)
+    if getattr(parsed, "missing_fields", None):
+        reason_lines.append(f"{missing_label}：" + "、".join(_compact_missing_fields(parsed.missing_fields)))
+    return reason_lines
+
+
+def _recommendation_source_for_status(status: str | None) -> str:
+    if status == "external_search_fallback":
+        return "external_search"
+    return "local_catalog"
+
+
+def _response_message_for_status(status: str | None) -> str:
+    if status == "need_user_confirmation":
+        return "need_user_confirmation"
+    if status == "failed_with_alternative":
+        return "failed_with_alternative"
+    if status == "external_search_fallback":
+        return "external_search_fallback"
+    return "success"
+
+
 def recommend(req: RecommendRequest) -> RecommendResponse:
     store = get_session_store()
-    repo = get_product_repository()
     client = get_client()
 
     debug_on = bool(settings.pc_guide_debug_llm or req.debug_llm)
@@ -150,31 +197,54 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
             ),
         )
 
+    clarification = DynamicClarificationAgent().evaluate(parsed, transcript=transcript)
+    if clarification.need_clarification:
+        _write_debug_json("latest_trace.json", trace or [])
+        _write_debug_json("latest_requirement_profile.json", _requirement_profile_payload(parsed, transcript))
+        _write_debug_json("latest_selection_debug.json", {})
+        _write_debug_json("latest_validation_debug.json", {})
+        _write_debug_text("latest_final_output.md", clarification.question or "")
+
+        question = clarification.question or "请补充关键信息后继续。"
+        store.append_message(
+            sid,
+            "assistant",
+            question,
+            meta={"type": "clarification", "missing_fields": clarification.missing_fields},
+        )
+        return RecommendResponse(
+            code=0,
+            message="need_clarification",
+            data=RecommendResponseData(
+                need_clarification=True,
+                clarification_question=question,
+                missing_fields=clarification.missing_fields,
+                clarification_cards=clarification.cards,
+                session_id=sid,
+                requirement_summary=summarize_requirements(parsed),
+                weights=dict(parsed.weights or {}),
+                weights_explanation=parsed.explanation,
+                recommendation_reason=_recommendation_reason_lines(parsed, missing_label="待补充信息"),
+                debug_llm=_debug_llm_payload(trace, debug_on),
+            ),
+        )
+
+    repo = get_product_repository()
     pool = repo.load()
     sel = retrieve_candidates(parsed, pool)
     _write_debug_json("latest_trace.json", trace or [])
     _write_debug_json("latest_requirement_profile.json", _requirement_profile_payload(parsed, transcript))
-    selection_debug = getattr(sel, "debug", None)
-    if selection_debug is None and hasattr(sel, "__dict__"):
-        selection_debug = sel.__dict__.get("debug")
-    _write_debug_json("latest_selection_debug.json", selection_debug or {})
+    _write_debug_json("latest_selection_debug.json", _selection_debug_payload(sel))
 
     outcome = validate_and_select(parsed, sel.sorted_by_category)
-    validation_debug = getattr(outcome, "debug", None)
-    if validation_debug is None and hasattr(outcome, "__dict__"):
-        validation_debug = outcome.__dict__.get("debug")
-    _write_debug_json("latest_validation_debug.json", validation_debug or {})
+    if should_use_external_search(sel, outcome):
+        outcome = ExternalSearchBuildAgent(client=client).search(parsed, selection_result=sel)
+    _write_debug_json("latest_validation_debug.json", _validation_debug_payload(outcome))
 
     md = render_final_markdown(parsed, outcome, polish=False)
     _write_debug_text("latest_final_output.md", md)
 
     store.append_message(sid, "assistant", md[:12000], meta={"type": "recommendation", "status": outcome.status})
-
-    reason_lines: list[str] = []
-    if parsed.explanation:
-        reason_lines.append(parsed.explanation)
-    if parsed.missing_fields:
-        reason_lines.append("待补充信息：" + "、".join(parsed.missing_fields))
 
     compat_notes = list((outcome.compatibility_check or {}).get("warnings") or [])
     risk_notes = list((outcome.risk_check or {}).get("warnings") or [])
@@ -187,6 +257,7 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
         weights_explanation=parsed.explanation,
         candidates_preview=sel.top3_preview,
         status=outcome.status,
+        recommendation_source=_recommendation_source_for_status(outcome.status),
         final_build=outcome.final_build,
         total_price=outcome.total_price,
         budget_check=outcome.budget_check,
@@ -195,17 +266,11 @@ def recommend(req: RecommendRequest) -> RecommendResponse:
         unmet_constraints=outcome.unmet_constraints,
         alternative_suggestions=outcome.alternative_suggestions,
         recommendation_markdown=md,
-        recommendation_reason=reason_lines,
+        recommendation_reason=_recommendation_reason_lines(parsed),
         compatibility_notes=compat_notes,
         risk_notes=risk_notes,
         jd_purchase_links=build_jd_links(outcome.final_build),
         debug_llm=_debug_llm_payload(trace, debug_on),
     )
 
-    msg = "success"
-    if outcome.status == "need_user_confirmation":
-        msg = "need_user_confirmation"
-    elif outcome.status == "failed_with_alternative":
-        msg = "failed_with_alternative"
-
-    return RecommendResponse(code=0, message=msg, data=data)
+    return RecommendResponse(code=0, message=_response_message_for_status(outcome.status), data=data)

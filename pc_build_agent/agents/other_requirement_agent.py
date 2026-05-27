@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +53,7 @@ class OtherRequirementAgent:
 
     def match_rules(self, normalized_text: str) -> list[dict[str, Any]]:
         matched_rules: list[dict[str, Any]] = []
+        matched_rules.extend(self._infer_flexible_rules(normalized_text))
         for rule in self.rules:
             hit_keywords = []
             for keyword in rule.get("keywords", []):
@@ -69,6 +71,102 @@ class OtherRequirementAgent:
                 }
             )
         return matched_rules
+
+    def _infer_flexible_rules(self, normalized_text: str) -> list[dict[str, Any]]:
+        rules: list[dict[str, Any]] = []
+        if re.search(r"(只(?:配|买|要|装).{0,4}主机|主机.{0,4}(?:就行|即可)|不(?:买|要|含).{0,4}显示器)", normalized_text):
+            rules.append(
+                {
+                    "rule_id": "flexible_scope_host_only",
+                    "dimension": "purchase_scope",
+                    "hit_keywords": ["主机范围"],
+                    "effects": {
+                        "purchase_scope": {"only_host": True, "include_monitor": False},
+                        "constraints_for_selection_agent": {"budget_scope_modifiers": ["host_only"]},
+                    },
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        if re.search(r"(整套|全套|连.{0,4}显示器|显示器.{0,4}(?:也要|一起|包含|算上)|外设.{0,4}(?:也要|一起|包含|算上))", normalized_text):
+            effects: dict[str, Any] = {
+                "purchase_scope": {},
+                "constraints_for_selection_agent": {"budget_scope_modifiers": []},
+            }
+            if re.search(r"(整套|全套|显示器)", normalized_text):
+                effects["purchase_scope"]["include_monitor"] = True
+                effects["constraints_for_selection_agent"]["budget_scope_modifiers"].append("include_monitor")
+            if re.search(r"(整套|全套|外设|键鼠|键盘|鼠标)", normalized_text):
+                effects["purchase_scope"]["include_peripherals"] = True
+                effects["constraints_for_selection_agent"]["budget_scope_modifiers"].append("include_peripherals")
+            rules.append(
+                {
+                    "rule_id": "flexible_scope_bundle",
+                    "dimension": "purchase_scope",
+                    "hit_keywords": ["整套范围"],
+                    "effects": effects,
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        if re.search(r"(显示器|屏幕).{0,6}(已有|有了|自己有|不用买|不买)", normalized_text):
+            rules.append(
+                {
+                    "rule_id": "flexible_owned_monitor",
+                    "dimension": "owned_parts",
+                    "hit_keywords": ["已有显示器"],
+                    "effects": {
+                        "owned_parts": {"has_monitor": True},
+                        "purchase_scope": {"include_monitor": False},
+                        "constraints_for_selection_agent": {"budget_scope_modifiers": ["monitor_already_owned"]},
+                    },
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        if re.search(r"(wifi|wi-fi|无线).{0,8}(要|需要|必须|带|稳定|方便)|(要|需要|必须|带).{0,8}(wifi|wi-fi|无线)", normalized_text, re.I):
+            rules.append(
+                {
+                    "rule_id": "flexible_connectivity_wifi",
+                    "dimension": "connectivity",
+                    "hit_keywords": ["无线网络"],
+                    "effects": {
+                        "connectivity": {"need_wifi": True, "connectivity_strategy": "prefer_wifi_motherboard"},
+                        "constraints_for_selection_agent": {
+                            "must_have_features": ["wifi_required"],
+                            "compatibility_checks": ["motherboard_wifi_or_adapter"],
+                        },
+                    },
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        if re.search(r"(蓝牙|bluetooth).{0,8}(要|需要|必须|带)|(要|需要|必须|带).{0,8}(蓝牙|bluetooth)", normalized_text, re.I):
+            rules.append(
+                {
+                    "rule_id": "flexible_connectivity_bluetooth",
+                    "dimension": "connectivity",
+                    "hit_keywords": ["蓝牙"],
+                    "effects": {
+                        "connectivity": {"need_bluetooth": True, "connectivity_strategy": "prefer_wifi_motherboard"},
+                        "constraints_for_selection_agent": {
+                            "must_have_features": ["bluetooth_required"],
+                            "compatibility_checks": ["motherboard_bluetooth_or_adapter"],
+                        },
+                    },
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        if re.search(r"(不要|不接受|拒绝|只要全新|全新).{0,8}(二手|矿卡|拆机)", normalized_text):
+            rules.append(
+                {
+                    "rule_id": "flexible_new_parts_only",
+                    "dimension": "purchase_risk",
+                    "hit_keywords": ["全新配件"],
+                    "effects": {
+                        "purchase_risk": {"accept_used_parts": False, "accept_mining_gpu": False},
+                        "constraints_for_selection_agent": {"must_have_features": ["new_parts_only"]},
+                    },
+                    "description": "结构化语义兜底规则",
+                }
+            )
+        return rules
 
     def extract_with_llm(self, user_text: str) -> dict[str, Any] | None:
         if not self.llm:

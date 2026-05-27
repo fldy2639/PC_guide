@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" role="img" aria-labelledby="title desc">
+  <title id="title">电脑装机工作台</title>
+  <desc id="desc">桌面上的主机、显卡、主板与配置清单示意</desc>
+  <rect width="520" height="260" rx="16" fill="#fff7f2"/>
+  <rect x="22" y="28" width="476" height="204" rx="14" fill="#ffffff" stroke="#f2d8d0"/>
+  <rect x="46" y="166" width="428" height="18" rx="9" fill="#263238" opacity=".08"/>
+  <g>
+    <rect x="70" y="62" width="116" height="132" rx="12" fill="#293241"/>
+    <rect x="84" y="78" width="88" height="96" rx="8" fill="#354756"/>
+    <rect x="98" y="94" width="60" height="60" rx="30" fill="#ffffff" opacity=".12"/>
+    <circle cx="128" cy="124" r="20" fill="none" stroke="#74c7b8" stroke-width="8"/>
+    <rect x="102" y="184" width="52" height="6" rx="3" fill="#e4393c"/>
+    <circle cx="166" cy="184" r="4" fill="#f5c542"/>
+  </g>
+  <g>
+    <rect x="210" y="78" width="116" height="84" rx="10" fill="#eaf3f6" stroke="#9fc9d3"/>
+    <rect x="226" y="96" width="48" height="48" rx="8" fill="#2f3d4a"/>
+    <rect x="284" y="96" width="26" height="8" rx="4" fill="#74c7b8"/>
+    <rect x="284" y="112" width="26" height="8" rx="4" fill="#74c7b8"/>
+    <rect x="284" y="128" width="26" height="8" rx="4" fill="#74c7b8"/>
+    <path d="M236 120h28M250 106v28" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="198" y="178" width="152" height="28" rx="6" fill="#34495e"/>
+    <rect x="214" y="186" width="82" height="12" rx="6" fill="#e4393c"/>
+    <circle cx="318" cy="192" r="10" fill="#ffffff" opacity=".18"/>
+    <path d="M314 192h8M318 188v8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g>
+    <rect x="356" y="64" width="92" height="132" rx="10" fill="#ffffff" stroke="#f0c9bd"/>
+    <rect x="372" y="84" width="60" height="8" rx="4" fill="#e4393c"/>
+    <rect x="372" y="106" width="46" height="8" rx="4" fill="#74c7b8"/>
+    <rect x="372" y="128" width="54" height="8" rx="4" fill="#f5c542"/>
+    <rect x="372" y="150" width="36" height="8" rx="4" fill="#8aa4b8"/>
+    <path d="M374 181h52" stroke="#293241" stroke-width="5" stroke-linecap="round" opacity=".18"/>
+  </g>
+  <path d="M42 216h436" stroke="#f2d8d0" stroke-width="2" stroke-linecap="round"/>
+</svg>

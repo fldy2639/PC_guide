@@ -11,6 +11,7 @@ from pc_build_agent.services.requirement_knowledge_repository import Requirement
 
 class PriceRequirementAgent:
     COMPONENTS = ["cpu", "gpu", "motherboard", "ram", "ssd", "cooling", "psu", "case"]
+    MIN_REASONABLE_BUDGET = 1000
     COMPONENT_CN = {
         "cpu": "处理器",
         "gpu": "显卡",
@@ -267,6 +268,12 @@ class PriceRequirementAgent:
             budget_flexibility = "flexible"
         else:
             budget_flexibility = "unknown"
+
+        if not self._has_plausible_budget(min_budget, max_budget, target_budget):
+            min_budget = None
+            max_budget = None
+            target_budget = None
+            direct_price_phrases = []
 
         return {
             "direct_price_phrases": list(dict.fromkeys(direct_price_phrases)),
@@ -777,6 +784,9 @@ class PriceRequirementAgent:
         elif unit in ("w", "W", "万"):
             value *= 10000
         return int(round(value))
+
+    def _has_plausible_budget(self, *values: int | None) -> bool:
+        return any(isinstance(value, int) and value >= self.MIN_REASONABLE_BUDGET for value in values)
 
     def _infer_bool(self, text: str, positive_tokens: list[str], negative_tokens: list[str]) -> bool | None:
         if any(token in text for token in positive_tokens):

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220" role="img" aria-labelledby="title desc">
+  <title id="title">待生成的装机方案</title>
+  <desc id="desc">空白清单与电脑配件示意</desc>
+  <rect width="360" height="220" rx="14" fill="#f8fafc"/>
+  <rect x="34" y="40" width="292" height="140" rx="12" fill="#ffffff" stroke="#e3e8ef"/>
+  <rect x="58" y="64" width="88" height="88" rx="10" fill="#eef4f7"/>
+  <rect x="76" y="82" width="52" height="52" rx="8" fill="#314452"/>
+  <circle cx="102" cy="108" r="16" fill="none" stroke="#74c7b8" stroke-width="7"/>
+  <rect x="168" y="70" width="124" height="10" rx="5" fill="#d5dde5"/>
+  <rect x="168" y="94" width="92" height="10" rx="5" fill="#e4393c" opacity=".85"/>
+  <rect x="168" y="118" width="112" height="10" rx="5" fill="#f5c542"/>
+  <rect x="168" y="142" width="78" height="10" rx="5" fill="#74c7b8"/>
+  <path d="M62 170h236" stroke="#e3e8ef" stroke-width="3" stroke-linecap="round"/>
+</svg>

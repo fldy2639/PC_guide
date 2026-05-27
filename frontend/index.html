@@ -52,6 +52,13 @@
             <span class="badge">自然语言</span>
           </div>
           <div class="card-bd">
+            <div class="intake-visual">
+              <img src="./assets/pc-workbench.svg" alt="电脑装机工作台示意图" decoding="async" />
+              <div>
+                <strong>装机问诊台</strong>
+                <span>预算、用途、外观偏好会合并成一份可采购清单。</span>
+              </div>
+            </div>
             <form id="form-main">
               <label class="lbl" for="user-query">预算 / 用途 / 外观 / 是否要显示器 / 指定显卡型号等</label>
               <textarea
@@ -94,9 +101,11 @@
             <div id="result-wrap" class="result-section hidden">
               <div id="result-inner"></div>
             </div>
-            <p id="placeholder-hint" class="hint" style="margin: 0">
-              提交需求后，这里会展示配件清单、参考总价、兼容性与风险提示。
-            </p>
+            <div id="placeholder-hint" class="empty-state">
+              <img src="./assets/empty-build.svg" alt="待生成的装机方案示意图" decoding="async" />
+              <h3>等待生成方案</h3>
+              <p>提交需求后，这里会展示配件清单、参考总价、兼容性与风险提示。</p>
+            </div>
           </div>
         </section>
       </div>
@@ -117,7 +126,7 @@
         }
         var obs = new MutationObserver(function () {
           // classList.contains("hidden") 为真表示尚无结果展示，占位可见
-          ph.style.display = rw.classList.contains("hidden") ? "block" : "none";
+          ph.style.display = rw.classList.contains("hidden") ? "" : "none";
         });
         obs.observe(rw, { attributes: true, attributeFilter: ["class"] }); // 仅观察 class 属性变化
       });

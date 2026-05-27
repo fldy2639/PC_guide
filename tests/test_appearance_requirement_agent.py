@@ -92,6 +92,38 @@ def test_black_minimalist_no_rgb():
     assert appearance["rgb"] == "no_rgb"
 
 
+def test_flexible_appearance_phrasing_without_exact_rule_keywords():
+    result = build_agent().analyze("想要奶油白全景展示风，晚上用别太吵")
+    appearance = result["appearance"]
+
+    assert appearance["color"] == "white"
+    assert appearance["case_style"] == "panoramic"
+    assert appearance["noise"] in ["silent", "low_noise"]
+
+
+class FakeAppearanceLlm:
+    api_key = "test"
+
+    def chat_json(self, messages, step):  # noqa: ANN001
+        return {
+            "case_style": {"value": "minimalist", "constraint_type": "soft_preference", "reason": ""},
+            "color": {"value": "silver_or_gray", "constraint_type": "soft_preference", "reason": ""},
+            "noise": {"value": "low_noise", "constraint_type": "soft_preference", "reason": ""},
+            "missing_information": ["是否需要侧透"],
+        }
+
+
+def test_appearance_llm_supplements_unknown_rule_fields():
+    agent = AppearanceRequirementAgent(rule_path=RULE_PATH, llm=FakeAppearanceLlm())
+    result = agent.analyze("想要月岩灰、克制一点的外观")
+    appearance = result["appearance"]
+
+    assert appearance["color"] == "silver_or_gray"
+    assert appearance["case_style"] == "minimalist"
+    assert appearance["noise"] == "low_noise"
+    assert "是否需要侧透" in appearance["missing_information"]
+
+
 def test_no_size_preference():
     """
     输入：颜色无所谓，正常机箱就行

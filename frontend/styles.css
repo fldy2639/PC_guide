@@ -156,6 +156,44 @@ body {
   padding: 18px;
 }
 
+.intake-visual {
+  display: grid;
+  grid-template-columns: 144px 1fr;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.intake-visual img {
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid #f1ddd7;
+  background: #fff7f2;
+}
+
+.intake-visual strong,
+.intake-visual span {
+  display: block;
+}
+
+.intake-visual strong {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.intake-visual span {
+  font-size: 12px;
+  color: var(--text-sub);
+}
+
+@media (max-width: 520px) {
+  .intake-visual {
+    grid-template-columns: 1fr;
+  }
+}
+
 label.lbl {
   display: block;
   font-size: 13px;
@@ -351,6 +389,11 @@ textarea.jd-input:focus {
   font-weight: 600;
 }
 
+.clarify-actions {
+  display: flex;
+  margin-top: 12px;
+}
+
 /* 结果区 */
 .result-section {
   margin-top: 20px;
@@ -381,6 +424,52 @@ textarea.jd-input:focus {
   color: var(--text-sub);
 }
 
+.source-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: 12px;
+  white-space: nowrap;
+  border: 1px solid var(--border);
+  color: var(--text-sub);
+  background: #fff;
+}
+
+.source-tag.external_search {
+  color: #8a4b00;
+  border-color: #ffd591;
+  background: #fff7e6;
+}
+
+.empty-state {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 18px;
+}
+
+.empty-state img {
+  width: min(260px, 86%);
+  height: auto;
+}
+
+.empty-state h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 340px;
+  font-size: 12px;
+}
+
 .price-banner {
   background: var(--jd-red);
   color: #fff;
@@ -408,6 +497,95 @@ textarea.jd-input:focus {
 .price-banner .status {
   font-size: 13px;
   opacity: 0.95;
+}
+
+.build-overview {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 14px;
+  align-items: stretch;
+  margin-bottom: 16px;
+}
+
+.build-tower {
+  position: relative;
+  min-height: 118px;
+  border-radius: var(--radius-lg);
+  background: #293241;
+  border: 1px solid #1f2835;
+  box-shadow: inset 0 0 0 8px rgba(255, 255, 255, 0.06);
+}
+
+.tower-light {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 50%;
+  border: 8px solid #74c7b8;
+}
+
+.tower-vent {
+  position: absolute;
+  right: 13px;
+  bottom: 20px;
+  width: 6px;
+  height: 40px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(#8aa4b8 0 4px, transparent 4px 8px);
+}
+
+.tower-foot {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: -7px;
+  height: 7px;
+  border-radius: 0 0 4px 4px;
+  background: #4a5564;
+}
+
+.build-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.build-metric {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.build-metric span,
+.build-metric strong {
+  display: block;
+}
+
+.build-metric span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.build-metric strong {
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .build-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .build-tower {
+    min-height: 90px;
+  }
 }
 
 /* 配件表格 */
@@ -451,6 +629,32 @@ textarea.jd-input:focus {
   color: var(--jd-red);
   font-weight: 700;
   white-space: nowrap;
+}
+
+.part-cell {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.part-thumb {
+  width: 42px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  color: #ffffff;
+  background: #34495e;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.part-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .jd-link {

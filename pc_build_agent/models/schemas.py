@@ -267,6 +267,7 @@ class BuildLine(BaseModel):
     price: float
     jd_url: str | None = None
     quantity: int = 1
+    source: str = "local_catalog"
 
 
 class RecommendResponseData(BaseModel):
@@ -283,6 +284,7 @@ class RecommendResponseData(BaseModel):
     candidates_preview: dict[str, list[dict[str, Any]]] = Field(default_factory=dict)
 
     status: str | None = None
+    recommendation_source: str = "local_catalog"
     final_build: list[BuildLine] = Field(default_factory=list)
     total_price: float = 0
     budget_check: dict[str, Any] = Field(default_factory=dict)

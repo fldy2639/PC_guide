@@ -128,6 +128,31 @@ def _latest_user_utterance(transcript: str) -> str:
     return transcript.strip()
 
 
+def _user_utterances(transcript: str) -> list[str]:
+    lines = [line.strip() for line in transcript.splitlines() if line.strip()]
+    utterances: list[str] = []
+    for line in lines:
+        if line.startswith("用户："):
+            utterances.append(line.split("用户：", 1)[1].strip())
+    if utterances:
+        return [item for item in utterances if item]
+    text = transcript.strip()
+    return [text] if text else []
+
+
+def _user_context_text(transcript: str) -> str:
+    utterances = _user_utterances(transcript)
+    if not utterances:
+        return transcript.strip()
+    latest = utterances[-1]
+    reset_tokens = ["重新", "新需求", "换成", "改成", "不要之前", "推翻前面", "重新来"]
+    if any(token in latest for token in reset_tokens):
+        return latest
+    if len(utterances) == 1:
+        return latest
+    return "；".join(utterances[-6:])
+
+
 def _model_to_dict(model: Any) -> dict[str, Any]:
     if hasattr(model, "model_dump"):
         return model.model_dump()
@@ -460,6 +485,7 @@ def safe_parse(
     trace_sink: list[dict[str, Any]] | None = None,
 ) -> ParsedRequirements:
     user_text = _latest_user_utterance(transcript)
+    context_text = _user_context_text(transcript)
     knowledge_repo = RequirementKnowledgeRepository()
     orchestrator = RequirementOrchestrator(
         performance_agent=PerformanceRequirementAgent(llm=client, knowledge_repo=knowledge_repo),
@@ -470,7 +496,7 @@ def safe_parse(
     )
 
     try:
-        profile_output = orchestrator.analyze(user_text)
+        profile_output = orchestrator.analyze(context_text)
         parsed = LegacyRequirementAdapter.from_requirement_profile(profile_output)
         parsed = finalize_for_selection(parsed)
         parsed.__dict__["requirement_profile"] = profile_output.get("requirement_profile", {})

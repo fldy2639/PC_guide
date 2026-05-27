@@ -118,6 +118,53 @@ user_text
 
 ## 快速开始
 
+### Windows（PowerShell）
+
+在仓库根目录（例如 `D:\code\PC_guide`）打开 **PowerShell**：
+
+1. **Python**：安装 [Python 3.10+](https://www.python.org/downloads/windows/)（推荐 3.11），安装时勾选 **Add python.exe to PATH**。可用 `py -0` 查看已安装的版本，`py -3.11 --version` 或 `python --version` 确认。
+2. **虚拟环境与依赖**：
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+若执行策略导致 `Activate.ps1` 无法运行，可在当前用户范围放宽一次：`Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`，或改用 **CMD**：`.\.venv\Scripts\activate.bat`。
+
+没有安装 `py` 启动器时，可将上述命令里的 `py -3.11` 换成 `python`（需保证是 3.10+）。
+
+3. **环境变量**：
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+在 `.env` 中至少设置 `DEEPSEEK_API_KEY`。
+
+4. **启动后端**（虚拟环境已激活）：
+
+```powershell
+python -m uvicorn pc_build_agent.main:app --host 0.0.0.0 --port 8000
+```
+
+5. **启动前端**：再开一个终端，进入同一目录并激活 `.venv` 后：
+
+```powershell
+python -m http.server 5173 --directory frontend
+```
+
+6. **打开页面**：与下文「Linux / macOS」相同：[http://127.0.0.1:5173](http://127.0.0.1:5173)、[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)、[http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)。
+
+**自检提示**：PowerShell 里 `curl` 可能是 `Invoke-WebRequest` 的别名，健康检查建议用 `curl.exe http://127.0.0.1:8000/health`，或使用浏览器访问 `/health`。
+
+---
+
+### Linux / macOS
+
 ### 1. 安装依赖
 
 ```bash
